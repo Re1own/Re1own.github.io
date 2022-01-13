@@ -980,7 +980,8 @@
 
 <p>flag{474b7f9219effe69530da4ad63c1752a}</p>
 <p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gya71lk0dxj30sz06t3z8.jpg" alt="image-20220108202803452"></p>
-<h2 id="补题（持续更新）"><a href="#补题（持续更新）" class="headerlink" title="补题（持续更新）"></a>补题（持续更新）</h2><h3 id="Ez-Steg"><a href="#Ez-Steg" class="headerlink" title="Ez_Steg"></a>Ez_Steg</h3><p><a href="steg.zip">题目下载</a></p>
+<h2 id="补题（持续更新）"><a href="#补题（持续更新）" class="headerlink" title="补题（持续更新）"></a>补题（持续更新）</h2><h3 id="西安加油"><a href="#西安加油" class="headerlink" title="西安加油"></a>西安加油</h3><p><a href="">题目下载</a></p>
+<h3 id="Ez-Steg"><a href="#Ez-Steg" class="headerlink" title="Ez_Steg"></a>Ez_Steg</h3><p><a href="steg.zip">题目下载</a></p>
 <p>爆破六位得到密码为220101，解压出来有两个文件，emojio.txt里面全是表情</p>
 <p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gybsv8ylx4j314u04yaai.jpg" alt="image-20220113094357257"></p>
 <p>pyc隐写，在<strong>kali</strong>中执行命令<code>./stegosaurus -x ../steg.pyc</code>执行之后，得到TheKey:St3g1sV3ryFuNny</p>
@@ -1001,7 +1002,8 @@
 
 
 
-<h3 id="binary"><a href="#binary" class="headerlink" title="binary"></a>binary</h3><h2 id="彩蛋"><a href="#彩蛋" class="headerlink" title="彩蛋"></a>彩蛋</h2><p>本次比赛是Nilunus战队首战，排名137/591，收获<strong>长安“战疫”网络安全卫士</strong>的称号和很多知识，取得较为不错的成绩，望今后自己的学校战队能取得惊人的网安成绩！</p>
+<h3 id="Binary-misc"><a href="#Binary-misc" class="headerlink" title="Binary_misc"></a>Binary_misc</h3><p><a href="lemon.zip">题目下载</a></p>
+<h2 id="彩蛋"><a href="#彩蛋" class="headerlink" title="彩蛋"></a>彩蛋</h2><p>本次比赛是Nilunus战队首战，排名137/591，收获<strong>长安“战疫”网络安全卫士</strong>的称号和很多知识，取得较为不错的成绩，望今后自己的学校战队能取得惊人的网安成绩！</p>
 ]]></content>
       <tags>
         <tag>CTF</tag>
