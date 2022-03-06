@@ -6,7 +6,7 @@
   <link href="https://re1own.github.io/atom.xml" rel="self"/>
   
   <link href="https://re1own.github.io/"/>
-  <updated>2022-01-21T11:52:47.670Z</updated>
+  <updated>2022-03-06T08:02:46.469Z</updated>
   <id>https://re1own.github.io/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Fuzz学习入门之Fuzzing-OpenEuler-file5.41</title>
+    <link href="https://re1own.github.io/2022/03/06/Fuzz%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E4%B9%8BFuzzing-OpenEuler-file5-41/"/>
+    <id>https://re1own.github.io/2022/03/06/Fuzz%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E4%B9%8BFuzzing-OpenEuler-file5-41/</id>
+    <published>2022-03-06T08:01:44.000Z</published>
+    <updated>2022-03-06T08:02:46.469Z</updated>
+    
+    <content type="html"><![CDATA[<p>下载AFL</p><p><code>git clone https://github.com/google/AFL.git</code></p><p><strong>Tips：需要将AFL/llvm_mode目录下alf-clang-fast.c中131~134行的代码给去掉，不然编译的时候会报错</strong></p><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081b92mkj21240u0ti7.jpg" alt="image-20220306154520627"></p><p>在AFL下make生成fuzzer</p><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081a3npvj21730u0gy1.jpg" alt="image-20220306154652875"></p><p>下载测试的项目：</p><p><code>git clone https://gitee.com/src-openeuler/file.git</code></p><p>把C和C++的编译器改为afl的afl-clang-fast和afl-clang-fast++</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> CC=/home/re1own/github/AFL/afl-clang-fast</span><br><span class="line"><span class="built_in">export</span> CXX=/home/re1own/github/AFL/afl-clang-fast++</span><br></pre></td></tr></table></figure><p>指定下安装目录</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./configure --enable-shared=no --prefix=/home/re1own/Project/install/</span><br></pre></td></tr></table></figure><p>编译安装</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081c4ux2j21c00u0gs5.jpg" alt="image-20220306151917157"></p><p>编译安装完之后可以发现在之前创建和制定的install目录下有了用AFL插桩生成的目标程序了</p><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081arcmrj20zk09k3z2.jpg" alt="telegram-cloud-photo-size-5-6131935855611326493-y"></p><p><code>strings file | grep &quot;afl&quot;</code>检查下是否插桩成功，字符串中有afl结合前面编译安装没有报错说明应该插桩成功了</p><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081cnef3j20lm0l4goi.jpg" alt="image-20220306153619409"></p><p>创建input、output文件夹，测试项目的tests文件下有输入文件，我们把它们转到input中当作种子，然后就可以用afl去fuzzing了</p><p><code>afl-fuzz -i input -o output -m none -t 500+ -- /home/re1own/Project/install/bin/file @@</code></p><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081d4vn0j21c00u07bt.jpg" alt="image-20220306155011256"></p><p>实验相关文件链接：<a href="https://github.com/Re1own/IoT_Sec/tree/main/Fuzz/openEuler/file-5.41">https://github.com/Re1own/IoT_Sec/tree/main/Fuzz/openEuler/file-5.41</a></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;下载AFL&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;git clone https://github.com/google/AFL.git&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Tips：需要将AFL/llvm_mode目录下alf-clang-fast.c中131~134行的代码</summary>
+      
+    
+    
+    
+    
+    <category term="fuzz" scheme="https://re1own.github.io/tags/fuzz/"/>
+    
+    <category term="OpenEuler" scheme="https://re1own.github.io/tags/OpenEuler/"/>
+    
+  </entry>
   
   <entry>
     <title>长安战疫网络安全卫士守护赛wp</title>
@@ -492,31 +518,6 @@
       
       
     <summary type="html">&lt;p&gt;key是全局变量，需要将key改变为特殊值35795746才行&lt;br&gt;&lt;img width=&quot;512&quot; alt=&quot;image&quot; src=&quot;https://tva1.sinaimg.cn/large/008i3skNly1gwqdc5ppqpj30sg0hg0ut.jpg&quot;&gt;</summary>
-      
-    
-    
-    
-    
-    <category term="PWN" scheme="https://re1own.github.io/tags/PWN/"/>
-    
-    <category term="CTF" scheme="https://re1own.github.io/tags/CTF/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>PWN-64位ROP-Bugku_PWN4</title>
-    <link href="https://re1own.github.io/2020/11/24/PWN-64%E4%BD%8DROP-Bugku-PWN4/"/>
-    <id>https://re1own.github.io/2020/11/24/PWN-64%E4%BD%8DROP-Bugku-PWN4/</id>
-    <published>2020-11-24T09:27:36.000Z</published>
-    <updated>2021-11-24T09:29:54.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>没有开任何保护<br><img width="357" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdacnb6ej30ju0ayq4d.jpg"></p><p>反汇编很明显栈溢出<br><img width="947" alt="image" src="https://user-images.githubusercontent.com/51265145/111448765-b42ad380-8749-11eb-8852-c7ff57859d13.png"><br><img width="486" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdadd43cj30r00pqdix.jpg"></p><p>然而只有System函数地址是已知的(0x400570)，参数”/bin/sh”未知<br>发现有$0(代表bash,做参数等同于”/bin/sh”)<br><img width="1435" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdaelmxfj31ot0u0n69.jpg"></p><p>**特别注意:**32位的函数调用使用栈传参，64位的函数调用使用寄存器传参，分别用rdi、rsi、rdx、rcx、r8、r9来传递参数（参数个数小于7的时候）<br>所以我们要找一个能够pop rdi的指令通过这句ROPgadget –binary pwn4 –only “pop|ret”可以找到，地址为0x4007d3<br><img width="769" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdafrko3j316q0h843s.jpg"></p><p>用命令ROPgadget –binary pwn4 –string ‘$0’  找到$0的地址0x60111f<br><img width="649" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdaeriz4j310205uwfy.jpg"></p><p>最后构造payload<br><img width="892" alt="image" src="https://user-images.githubusercontent.com/51265145/111448971-e89e8f80-8749-11eb-8371-a42936061572.png"><br><img width="644" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdafax04j30zs0fu766.jpg"></p>]]></content>
-    
-    
-      
-      
-    <summary type="html">&lt;p&gt;没有开任何保护&lt;br&gt;&lt;img width=&quot;357&quot; alt=&quot;image&quot; src=&quot;https://tva1.sinaimg.cn/large/008i3skNly1gwqdacnb6ej30ju0ayq4d.jpg&quot;&gt;&lt;/p&gt;
-&lt;p&gt;反汇编很明显栈溢出&lt;br&gt;&lt;im</summary>
       
     
     
