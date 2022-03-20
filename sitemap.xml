@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://re1own.github.io/2022/03/21/AFL-FUZZ-Code-Learning/</loc>
+    
+    <lastmod>2022-03-20</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://re1own.github.io/2022/03/06/Fuzz%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E4%B9%8BFuzzing-OpenEuler-file5-41/</loc>
     
     <lastmod>2022-03-06</lastmod>
@@ -214,7 +221,7 @@
 
   <url>
     <loc>https://re1own.github.io/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -222,154 +229,168 @@
   
   <url>
     <loc>https://re1own.github.io/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/Web/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/CVE/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/IoT/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/fuzz/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/OpenEuler/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/PWN/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/CTF/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/ROP/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/ret2libc/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/Reverse/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/%E8%B8%A9%E5%9D%91/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/qemu/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/ret2shellcode/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/ret2syscall/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/ASM/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/Canary/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/WP/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/%E5%AE%9E%E6%88%98/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/%E6%9C%A8%E9%A9%AC/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/wp/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/tags/%E6%AF%94%E8%B5%9B/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://re1own.github.io/tags/AFL/</loc>
+    <lastmod>2022-03-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://re1own.github.io/tags/Fuzz/</loc>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
@@ -378,14 +399,14 @@
   
   <url>
     <loc>https://re1own.github.io/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://re1own.github.io/categories/IoT%E5%AE%89%E5%85%A8/</loc>
-    <lastmod>2022-03-06</lastmod>
+    <lastmod>2022-03-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
