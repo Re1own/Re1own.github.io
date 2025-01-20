@@ -62,9 +62,9 @@
     
     <category term="SCA" scheme="https://re1own.github.io/tags/SCA/"/>
     
-    <category term="DPA" scheme="https://re1own.github.io/tags/DPA/"/>
-    
     <category term="AES" scheme="https://re1own.github.io/tags/AES/"/>
+    
+    <category term="DPA" scheme="https://re1own.github.io/tags/DPA/"/>
     
   </entry>
   
