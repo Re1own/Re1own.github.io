@@ -1,0 +1,240 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>初识测信道攻击（Side Channel Attack） | Re1own's blog</title><meta name="keywords" content="SCA,Power Analysis Attack,Hardware Security"><meta name="author" content="Re1own"><meta name="copyright" content="Re1own"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="初识测信道攻击（Side Channel Attack )目前测信道攻击的几个攻击面：热量，声音，时钟，电磁辐射，能耗。为什么从这些面去攻击呢？因为这些面都是非常轻易能测量的！也是开发者很难做防守的点。我将从能耗攻击入手测信道，定期分享一些心得。  能耗攻击AES加密算法，简单来说就是通过监控设备在加密过程中的能耗来推测AES加密的密钥。而其中的推测方式主要有两种，一种是DPA（利用平均数的差分）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="初识测信道攻击（Side Channel Attack）">
+<meta property="og:url" content="https://re1own.github.io/2023/05/20/SCA/index.html">
+<meta property="og:site_name" content="Re1own&#39;s blog">
+<meta property="og:description" content="初识测信道攻击（Side Channel Attack )目前测信道攻击的几个攻击面：热量，声音，时钟，电磁辐射，能耗。为什么从这些面去攻击呢？因为这些面都是非常轻易能测量的！也是开发者很难做防守的点。我将从能耗攻击入手测信道，定期分享一些心得。  能耗攻击AES加密算法，简单来说就是通过监控设备在加密过程中的能耗来推测AES加密的密钥。而其中的推测方式主要有两种，一种是DPA（利用平均数的差分）">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://avatars.githubusercontent.com/u/51265145?v=4">
+<meta property="article:published_time" content="2023-05-20T06:17:52.000Z">
+<meta property="article:modified_time" content="2025-06-28T08:48:06.545Z">
+<meta property="article:author" content="Re1own">
+<meta property="article:tag" content="SCA">
+<meta property="article:tag" content="Power Analysis Attack">
+<meta property="article:tag" content="Hardware Security">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://avatars.githubusercontent.com/u/51265145?v=4"><link rel="shortcut icon" href="https://avatars.githubusercontent.com/u/51265145?v=4"><link rel="canonical" href="https://re1own.github.io/2023/05/20/SCA/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?3578e6b9b604a5b4194133e82a05cfe3";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=3079589108"></script><script>window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '3079589108');
+</script><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"We didn't find any results for the search: ${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: 'days',
+  date_suffix: {
+    just: 'Just',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '初识测信道攻击（Side Channel Attack）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-06-28 04:48:06'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.2"><link rel="alternate" href="/atom.xml" title="Re1own's blog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">Tags</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">Re1own's blog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">初识测信道攻击（Side Channel Attack）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2023-05-20T06:17:52.000Z" title="Created 2023-05-20 02:17:52">2023-05-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2025-06-28T08:48:06.545Z" title="Updated 2025-06-28 04:48:06">2025-06-28</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="初识测信道攻击（Side Channel Attack）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div><article class="post-content" id="article-container"><h1 id="初识测信道攻击（Side-Channel-Attack"><a href="#初识测信道攻击（Side-Channel-Attack" class="headerlink" title="初识测信道攻击（Side Channel Attack )"></a>初识测信道攻击（Side Channel Attack )</h1><p>目前测信道攻击的几个攻击面：热量，声音，时钟，电磁辐射，能耗。为什么从这些面去攻击呢？因为这些面都是非常轻易能测量的！也是开发者很难做防守的点。我将从能耗攻击入手测信道，定期分享一些心得。</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230519004802741.png" alt="image-20230519004802741"></p>
+<p>能耗攻击AES加密算法，简单来说就是通过监控设备在加密过程中的能耗来推测AES加密的密钥。而其中的推测方式主要有两种，一种是DPA（利用平均数的差分），另一种是CPA（利用统计学推测能耗与数值间的相关性）。其实它两本质上是一样的道理，只不过是在处理能耗数据上采取了不同的策略，殊途同归。在了解主要的两种能耗攻击（DPA和CPA）的具体过程之前，这里简单介绍一下AES-128加密算法</p>
+<h2 id="AES-128加密算法"><a href="#AES-128加密算法" class="headerlink" title="AES-128加密算法"></a>AES-128加密算法</h2><h3 id="Step1-AddRound-key"><a href="#Step1-AddRound-key" class="headerlink" title="Step1: AddRound key"></a>Step1: AddRound key</h3><p>明文P和密钥K，我们可以将其分别看成两个4x4的矩阵，每个Value都是一个字节。让两个矩阵进行+操作。</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230520025652793.png" alt="image-20230520025652793"></p>
+<p>操作如(3)，简写成(4)</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230519010852493.png" alt="image-20230519010852493"></p>
+<h3 id="Step2-SubRound"><a href="#Step2-SubRound" class="headerlink" title="Step2: SubRound"></a>Step2: SubRound</h3><p>在AddRound后，得到一个4x4的新矩阵，这还不够，AES还想让这些数据做更大的混合，加大破解的难度，于是乎通过一个叫<strong>S-box</strong>的东西把Round后的每一个数值进行固定的替代。例如Round后的一个字节是0x12，那么就找到第0x1行，第0x2列的数值，这个表中是c9，那么就是把0x12换成c9。这样换下来后，数据的破解难度会加大。</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230519011243504.png" alt="image-20230519011243504"></p>
+<p>SubRound过程这样表示</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230519020225029.png" alt="image-20230519020225029"></p>
+<p>下面一个例子是在AddRound后的矩阵做SubRound后的结果，可以看到数值都通过S-box准确映射成一个新的矩阵</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230519020322133.png" alt="image-20230519020322133"></p>
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/AES-SubBytes.svg/2880px-AES-SubBytes.svg.png" alt="undefined"></p>
+<h3 id="Step3-ShiftRows"><a href="#Step3-ShiftRows" class="headerlink" title="Step3: ShiftRows"></a>Step3: ShiftRows</h3><p>把上一步得到的矩阵的行进行左移，第i行左移动i位（从0行开始数），第0行不移动，第一行一动一位，第二行移动两位以此类推。。。然后得到一个新的矩阵</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230520024213409.png" alt="image-20230520024213409"></p>
+<h3 id="Step4-MixColums"><a href="#Step4-MixColums" class="headerlink" title="Step4: MixColums"></a>Step4: MixColums</h3><p>将上一步得到的矩阵和一个固定的矩阵进行乘操作又得到一个新的矩阵</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230520024248413.png" alt="image-20230520024248413"></p>
+<p>根据维基百科，这个矩阵貌似是固定的，就是下面这个</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230519103656001.png" alt="image-20230519103656001"></p>
+<p>可以发现就是三种情况，乘1，2，3。然而需要注意的是这个乘法很特殊不像十进制那样。</p>
+<p><strong>第一种情况：</strong>1*a = a</p>
+<p><strong>第二种情况：</strong>2*a，如果a的首位是0，那么a左移2位，如果a的首位是1，则( (a&lt;&lt;1) &amp; ( (1&lt;&lt;8) - 1) ) ^ (0x1b)</p>
+<p><strong>第三种情况：</strong>3*a，则(2 * a) ^ a</p>
+<h3 id="Step5-AddRound-key"><a href="#Step5-AddRound-key" class="headerlink" title="Step5: AddRound key"></a>Step5: AddRound key</h3><p>再来一遍AddRound key，但此时的key不再是原来的了，需要通过原来的密钥进行计算。把原来的密钥按列看成4个字节，每个字节进行左环移，然后又对这4个字节进行S-box变换，变换后，最左面的字节与RCj相加，AES128加密要把以上步骤进行10轮，RCj在每一轮的计算中都不一样</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230519105553591.png" alt="image-20230519105553591"></p>
+<p>RCj在每一轮中对应的数值如下：</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230519105815719.png" alt="image-20230519105815719"></p>
+<h2 id="Step6-Optimization-of-the-cipher"><a href="#Step6-Optimization-of-the-cipher" class="headerlink" title="Step6: Optimization of the cipher"></a>Step6: Optimization of the cipher</h2><p>把上述过程重复10次，最后得到的就是16字节的密文了</p>
+<h2 id="DPA（Differential-Power-Analysis）"><a href="#DPA（Differential-Power-Analysis）" class="headerlink" title="DPA（Differential Power Analysis）"></a>DPA（Differential Power Analysis）</h2><p>通过分析设备在执行密码操作时消耗的电力来获取信息。攻击者会收集大量的电力消耗数据，然后分析这些数据来寻找模式和差异。这些模式或差异可以帮助攻击者猜测密钥的部分或全部。</p>
+<p>步骤：</p>
+<p><strong>数据收集</strong>：用电脑通过串口对板子发送指令信号去执行AddRound Key和SubBytes操作。AddRound和SubBytes为每个单独的明文运行10次，以使示波器能够得到一个平均的结果（从而帮助减轻背景噪音和干扰）。</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230519173931074.png" alt="image-20230519173931074"></p>
+<p>在CMOS电路中，对位为1的数据进行操作通常需要更多的电荷移动，因此消耗更多的能量。观察LSB（the least significant bit，最低有效位）。如果该假设成立，我们可以利用这个事实在密码操作期间推导出密钥。功耗其实变化是非常小的，几乎没法用肉眼观察，因此，在DPA中，必须收集大量的迹线，根据LSB的值将这些功耗迹线数据分成两个子集：一个子集包含LSB为0的迹线，另一个子集包含LSB为1的迹线。</p>
+<p>假设有一个只有两位的简单加密系统，采用XOR操作作为加密操作，我们有四种可能的密钥（00，01，10，11）。(假设功耗只和明文中的1的数量有关，实际情况会更复杂。)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">明文   密文   功耗</span><br><span class="line">00 -&gt; 11 -&gt; 1.0</span><br><span class="line">01 -&gt; 00 -&gt; 2.0</span><br><span class="line">10 -&gt; 00 -&gt; 2.0</span><br><span class="line">11 -&gt; 10 -&gt; 1.0</span><br></pre></td></tr></table></figure>
+
+<p><strong>分组</strong>：我们可以预测明文和每个假设的密钥进行XOR操作后的中间值。对于每个假设的密钥，我们将功耗样本按照预测的中间值的最低有效位（LSB）进行分组。例如，对于假设的密钥01：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">明文 XOR 密钥 = 中间值</span><br><span class="line">00 XOR 01 = 01 -&gt; LSB为1 -&gt; 功耗1.0进入1组</span><br><span class="line">01 XOR 01 = 00 -&gt; LSB为0 -&gt; 功耗2.0进入0组</span><br><span class="line">10 XOR 01 = 11 -&gt; LSB为1 -&gt; 功耗2.0进入1组</span><br><span class="line">11 XOR 01 = 10 -&gt; LSB为0 -&gt; 功耗1.0进入0组</span><br></pre></td></tr></table></figure>
+
+<p>这样我们就得到了两组功耗样本：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0组：[2.0, 1.0]</span><br><span class="line">1组：[1.0, 2.0]</span><br></pre></td></tr></table></figure>
+
+<p><strong>计算差分</strong>：我们计算每组的平均功耗，然后计算两者之间的差值。在这个例子中，0组的平均功耗是1.5，1组的平均功耗也是1.5，差值为0，说明01不太可能是密钥，之后代入其他的比如00,11,10，谁的差分最大谁才是最可能的密钥。</p>
+<p><strong>密钥选择：</strong>我们将重复这个过程，对每一个可能的密钥都计算出一个功耗差值。最后，我们将选择那个使得功耗差值最大的密钥作为可能的正确密钥。在这个极度简化的示例中，所有的密钥都会得到相同的差值，所以我们不能确定正确的密钥。但在实际情况下，正确的密钥通常会导致较大的功耗差值。</p>
+<p><strong>密钥猜测选择方法：</strong></p>
+<p>以上是一个数据量非常小的例子，枚举所有数值即可，而实际的AES-128，密钥是128位（16个字节），枚举所有可能去一个个套是不可能的。在进行密钥猜测时，可以采取以下几种方法：</p>
+<ul>
+<li><p>字典攻击：创建一个包含可能的密钥的字典，并将每个密钥尝试应用于攻击目标。这需要预先生成和存储大量可能的密钥，并进行遍历比较。然而，由于密钥空间非常大，这种方法很可能会遭遇到时间和空间上的限制。</p>
+</li>
+<li><p>蒙特卡罗方法：使用随机生成的密钥进行攻击，并观察功耗模式。重复这个过程多次，根据每个密钥产生的功耗模式的统计信息来推断出最有可能的密钥。</p>
+</li>
+<li><p>高级优化算法：使用各种优化算法（如遗传算法、模拟退火算法等）对密钥空间进行搜索。这些算法可以在密钥空间中进行智能搜索，以找到可能的密钥。</p>
+</li>
+<li><p>辅助信息攻击：尝试收集更多关于目标设备的辅助信息，例如设备在处理不同输入时的功耗变化模式，或者算法执行中的其他侧信道信息。这些额外的信息可以用于提高密钥猜测的准确性。</p>
+</li>
+</ul>
+<h2 id="CPA（Correlation-Power-Analysis）"><a href="#CPA（Correlation-Power-Analysis）" class="headerlink" title="CPA（Correlation Power Analysis）"></a>CPA（Correlation Power Analysis）</h2><p>这是一种更为复杂的攻击，利用了电力消耗与密钥操作之间的统计相关性。具体来说，攻击者会生成一系列密钥假设，并对每个假设进行电力消耗模型的计算，然后将这些结果与实际的电力消耗数据进行相关性比较。假设与实际数据相关性最高的密钥最有可能是正确的密钥。</p>
+<p>步骤：</p>
+<p><strong>收集侧信道数据</strong>（这些数据可以是设备的功耗消耗曲线、电磁波辐射强度或其他与设备操作相关的信号。因为DPA已经举了能耗的例子就不在此赘述了。</p>
+<p><strong>建立模型</strong>：接下来，需要建立一个统计模型来描述侧信道数据与秘密密钥之间的关系。通常使用相关性分析来构建这个模型。举一个与DPA类似但略有不同的点。</p>
+<p><strong>相关性：</strong>在DPA中，我们是只考虑了LSB，通过LSB这一个角度去分析数据。而在CPA中，我们可以选择更多可能的相关性。在功耗分析攻击中使用<strong>Hamming Weight Power Model</strong>的假设是输出的0或1位的数量与设备的功耗消耗存在相关性。比如二进制1001110，在DPA中，就只考虑最低位是0，分析的数据的相关性其实比较弱。而CPA中，我们可以选择以评判这个二进制中1的数量，比如二进制11111111，有8个1，二进制11001100只有4个1。1多的数消耗的能耗要多于1少的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">value				P</span><br><span class="line">11111111		7.3</span><br><span class="line">11001100		4.5</span><br></pre></td></tr></table></figure>
+
+<p><strong>统计分析：</strong>下图给出了一个加密设备可能产生的输出示例以及测量每个输出时的功耗消耗。输出为0000 0111的汉明重量为3，而0000 1111的汉明重量为4，依此类推。</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230520021455091.png" alt="image-20230520021455091"></p>
+<p>假设我们生成了一个完全准确的汉明重量功耗模型，那么如图所示，将会找到强正相关性（即随着功耗消耗的增加，二进制输出中的1的数量也会增加）。</p>
+<p><img src="https://re1own.github.io/assets/img/SCA/image-20230520021353785.png" alt="image-20230520021353785"></p>
+<p><strong>密钥推断：</strong>根据统计分析的结果，可以推断出猜测的密钥位的值。在我们的例子中，如果发现某个时间点上的功耗值与猜测密钥的第一个字节的值呈现高度相关性，那么我们可以得出结论，猜测的密钥位的值可能是正确的。</p>
+<p><strong>验证和重复：</strong>对于成功推断的密钥位，我们可以使用其他的加密操作或数据样本进行验证。如果验证成功，则可以进一步推断其他未知的密钥位。如果验证失败，则需要重新进行攻击过程，并尝试不同的猜测和分析方法。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>破解密钥就像仿制一个特定的杯子，数据就像水，杯子可以让水变成多种形状就像密钥可以改变数据到面目全非，而破解密钥的过程就是不断尝试利用各种方法雕刻杯子直到能和特定杯子一样能使数据的形状一致。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://doi.org/10.1080/23742917.2016.1231523">Power analysis attacks on the AES-128 S-box using diﬀerential power analysis (DPA) and correlation power analysis (CPA)</a></p>
+<p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES 128</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">Re1own</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="https://re1own.github.io/2023/05/20/SCA/">https://re1own.github.io/2023/05/20/SCA/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/SCA/">SCA</a><a class="post-meta__tags" href="/tags/Power-Analysis-Attack/">Power Analysis Attack</a><a class="post-meta__tags" href="/tags/Hardware-Security/">Hardware Security</a></div><div class="post_share"><div class="social-share" data-image="https://avatars.githubusercontent.com/u/51265145?v=4" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> Donate</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="https://i.loli.net/2021/10/21/syOvRWB2DejXGZc.png" target="_blank"><img class="post-qr-code-img" src="https://i.loli.net/2021/10/21/syOvRWB2DejXGZc.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="https://i.loli.net/2021/10/21/FKSPZJviGNdp4Y1.png" target="_blank"><img class="post-qr-code-img" src="https://i.loli.net/2021/10/21/FKSPZJviGNdp4Y1.png" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/05/23/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E4%B9%8B%E8%83%BD%E8%80%97%E5%88%86%E6%9E%90%E5%AE%9E%E9%AA%8C%E4%B8%80/"><img class="prev-cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">Previous Post</div><div class="prev_info">测信道攻击之能耗分析实验一</div></div></a></div><div class="next-post pull-right"><a href="/2022/11/21/Dynamic-Practice/"><img class="next-cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">Next Post</div><div class="next_info">Dynamic_Practice</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><div><a href="/2023/05/24/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94Hamming-Weight-Swings/" title="测信道攻击——Hamming Weight Swings"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-24</div><div class="title">测信道攻击——Hamming Weight Swings</div></div></a></div><div><a href="/2023/05/23/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E4%B9%8B%E8%83%BD%E8%80%97%E5%88%86%E6%9E%90%E5%AE%9E%E9%AA%8C%E4%B8%80/" title="测信道攻击之能耗分析实验一"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-23</div><div class="title">测信道攻击之能耗分析实验一</div></div></a></div><div><a href="/2023/05/25/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E5%88%A9%E7%94%A8%E4%B8%80%E4%B8%AAbit%E6%81%A2%E5%A4%8DAES-key/" title="测信道攻击——利用一个bit恢复AES key"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-25</div><div class="title">测信道攻击——利用一个bit恢复AES key</div></div></a></div><div><a href="/2023/05/24/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E5%88%A9%E7%94%A8%E8%83%BD%E8%80%97%E7%A0%B4%E8%A7%A3%E5%AF%86%E7%A0%81/" title="测信道攻击——利用能耗破解密码"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-24</div><div class="title">测信道攻击——利用能耗破解密码</div></div></a></div><div><a href="/2023/05/26/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E7%94%A8DPA%E6%94%BB%E5%87%BB%E5%9B%BA%E4%BB%B6%E4%B8%AD%E7%9A%84AES/" title="测信道攻击——用DPA攻击固件中的AES"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-26</div><div class="title">测信道攻击——用DPA攻击固件中的AES</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Re1own</div><div class="author-info__description">Focusing on Side Channel Attack</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">34</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">Tags</div><div class="length-num">34</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Re1own"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Re1own" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:hzhou9@gmu.edu" target="_blank" title="Email"><i class="fas fa-envelope"></i></a><a class="social-icon" href="https://scholar.google.com/citations?user=ghqxQuAAAAAJ" target="_blank" title="Google Scholar"><i class="fas fa-graduation-cap"></i></a><a class="social-icon" href="https://re1own.github.io/assets/document/Huizhen_Zhou_Resume1.pdf" target="_blank" title="CV"><i class="fas fa-file-alt"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>Announcement</span></div><div class="announcement_content">Focus on Side Channel Attack</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Catalog</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%9D%E8%AF%86%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%EF%BC%88Side-Channel-Attack"><span class="toc-number">1.</span> <span class="toc-text">初识测信道攻击（Side Channel Attack )</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#AES-128%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95"><span class="toc-number">1.1.</span> <span class="toc-text">AES-128加密算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step1-AddRound-key"><span class="toc-number">1.1.1.</span> <span class="toc-text">Step1: AddRound key</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step2-SubRound"><span class="toc-number">1.1.2.</span> <span class="toc-text">Step2: SubRound</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step3-ShiftRows"><span class="toc-number">1.1.3.</span> <span class="toc-text">Step3: ShiftRows</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step4-MixColums"><span class="toc-number">1.1.4.</span> <span class="toc-text">Step4: MixColums</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step5-AddRound-key"><span class="toc-number">1.1.5.</span> <span class="toc-text">Step5: AddRound key</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Step6-Optimization-of-the-cipher"><span class="toc-number">1.2.</span> <span class="toc-text">Step6: Optimization of the cipher</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DPA%EF%BC%88Differential-Power-Analysis%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">DPA（Differential Power Analysis）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CPA%EF%BC%88Correlation-Power-Analysis%EF%BC%89"><span class="toc-number">1.4.</span> <span class="toc-text">CPA（Correlation Power Analysis）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.6.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/18/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/" title="理解AES_S-box盒生成">理解AES_S-box盒生成</a><time datetime="2023-06-18T07:48:16.000Z" title="Created 2023-06-18 03:48:16">2023-06-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/26/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E7%94%A8DPA%E6%94%BB%E5%87%BB%E5%9B%BA%E4%BB%B6%E4%B8%AD%E7%9A%84AES/" title="测信道攻击——用DPA攻击固件中的AES">测信道攻击——用DPA攻击固件中的AES</a><time datetime="2023-05-27T02:26:36.000Z" title="Created 2023-05-26 22:26:36">2023-05-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/25/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E5%88%A9%E7%94%A8%E4%B8%80%E4%B8%AAbit%E6%81%A2%E5%A4%8DAES-key/" title="测信道攻击——利用一个bit恢复AES key">测信道攻击——利用一个bit恢复AES key</a><time datetime="2023-05-25T05:19:16.000Z" title="Created 2023-05-25 01:19:16">2023-05-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/24/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94Hamming-Weight-Swings/" title="测信道攻击——Hamming Weight Swings">测信道攻击——Hamming Weight Swings</a><time datetime="2023-05-25T01:27:14.000Z" title="Created 2023-05-24 21:27:14">2023-05-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/24/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E5%88%A9%E7%94%A8%E8%83%BD%E8%80%97%E7%A0%B4%E8%A7%A3%E5%AF%86%E7%A0%81/" title="测信道攻击——利用能耗破解密码">测信道攻击——利用能耗破解密码</a><time datetime="2023-05-24T07:40:37.000Z" title="Created 2023-05-24 03:40:37">2023-05-24</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Re1own</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Switch Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between single-column and double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">Local search</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="Search for Posts" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="true" data-text="Hardware,Security" data-fontsize="20px" data-random="false" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

